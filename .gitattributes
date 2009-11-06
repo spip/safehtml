@@ -1,0 +1,13 @@
+* text=auto !eol
+inc/safehtml.php -text
+lib/safehtml/classes/HTMLSax3.php -text
+lib/safehtml/classes/HTMLSax3/Decorators.php -text
+lib/safehtml/classes/HTMLSax3/States.php -text
+lib/safehtml/classes/HTMLSax3/index.php -text
+lib/safehtml/classes/index.php -text
+lib/safehtml/classes/safehtml.php -text
+lib/safehtml/index.php -text
+lib/safehtml/license.txt -text
+lib/safehtml/readme-SPIP.txt -text
+lib/safehtml/readme.txt -text
+/plugin.xml -text
