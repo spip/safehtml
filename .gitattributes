@@ -1,5 +1,4 @@
 * text=auto !eol
-images/safehtml-128 -text
 images/safehtml-128.png -text
 images/safehtml-32.png -text
 inc/safehtml.php -text
