@@ -1,6 +1,7 @@
 <plugin>
 	<nom>SafeHTML</nom>
 	<auteur>pixel-apes</auteur>
+	<icon>images/safehtml-32.png</icon>
 	<version>1.3.7</version>
 	<licence>GPL</licence>
 	<etat>stable</etat>

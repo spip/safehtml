@@ -1,4 +1,6 @@
 * text=auto !eol
+images/safehtml-128 -text
+images/safehtml-32.png -text
 inc/safehtml.php -text
 lib/safehtml/classes/HTMLSax3.php -text
 lib/safehtml/classes/HTMLSax3/Decorators.php -text
