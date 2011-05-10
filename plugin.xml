@@ -9,4 +9,5 @@
 	<prefix>safehtml</prefix>
 	<lien>http://www.ohloh.net/p/safehtml</lien>
 	<necessite id="SPIP" version="[2.1.0 dev;)" />
+	<categorie>performance</categorie>
 </plugin>
