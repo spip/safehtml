@@ -15,6 +15,9 @@
 // | Authors: Many @ Sitepointforums Advanced PHP Forums                  |
 // +----------------------------------------------------------------------+
 //
+
+if (!defined('_ECRIRE_INC_VERSION')) return;
+
 if (!defined('XML_HTMLSAX3')) {
  define('XML_HTMLSAX3', 'XML/');
 }
