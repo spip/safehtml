@@ -39,7 +39,7 @@ function inc_safehtml_dist($t) {
 		if (
 		false !== strpos($t, 'iframe')) {
 			foreach (extraire_balises($t, 'iframe') as $iframe) {
-				if (preg_match(',^http://((www\.)?youtube\.com)/.*,', extraire_attribut($iframe, 'src'))) {
+				if (preg_match(',^http://(www\.)?(youtube\.com|(player\.)?vimeo\.com)/.*,', extraire_attribut($iframe, 'src'))) {
 					$re = '___IFRAME___'.md5($iframe);
 					$ok[$re] = $iframe;
 					$t = str_replace($iframe, $re, $t);
