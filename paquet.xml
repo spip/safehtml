@@ -3,7 +3,7 @@
 	categorie="performance"
 	version="1.4.0"
 	etat="stable"
-	compatibilite="[3.0.0-alpha2;["
+	compatibilite="[3.0.0;3.1.*]"
 	logo="images/safehtml-32.png"
 	documentation="http://www.ohloh.net/p/safehtml"
 >	
