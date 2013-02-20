@@ -2,6 +2,7 @@
 images/safehtml-128.png -text
 images/safehtml-32.png -text
 inc/safehtml.php -text
+lang/paquet-safehtml.xml -text
 lib/safehtml/classes/HTMLSax3.php -text
 lib/safehtml/classes/HTMLSax3/Decorators.php -text
 lib/safehtml/classes/HTMLSax3/States.php -text
