@@ -6,6 +6,7 @@ lang/paquet-safehtml.xml -text
 lang/paquet-safehtml_en.php -text
 lang/paquet-safehtml_es.php -text
 lang/paquet-safehtml_it.php -text
+lang/paquet-safehtml_pt.php -text
 lang/paquet-safehtml_ru.php -text
 lib/safehtml/classes/HTMLSax3.php -text
 lib/safehtml/classes/HTMLSax3/Decorators.php -text
