@@ -2,6 +2,9 @@
 /**
  * SafeHTML Parser
  *
+ * @note
+ *    Attention : quelques modifications pour PHP 5.5
+ * 
  * @package SafeHTML
  * @author  Roman Ivanov <thingol@mail.ru>
  * @copyright  2004-2005 Roman Ivanov
@@ -9,6 +12,7 @@
  * @version    1.3.7
  * @link    http://pixel-apes.com/safehtml/
  */
+
 
 if (!defined('_ECRIRE_INC_VERSION')) return;
 
@@ -165,8 +169,10 @@ class SafeHTML
        }
     }
 
-    $tempval = preg_replace('/&#(\d+);?/me', "chr('\\1')", $value); //"'
-    $tempval = preg_replace('/&#x([0-9a-f]+);?/mei', "chr(hexdec('\\1'))", $tempval);
+    $tempval = preg_replace_callback('/&#(\d+);?/m',
+        create_function('$m', 'return chr($m[1]);'), $value); //"'
+    $tempval = preg_replace_callback('/&#x([0-9a-f]+);?/mi',
+        create_function('$m', 'return chr(hexdec($m[1]));'), $tempval); //"'
 
     if ((in_array($name, $this->protocolAttributes)) && 
      (strpos($tempval, ':') !== false)) 
