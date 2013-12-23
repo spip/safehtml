@@ -3,6 +3,7 @@ images/safehtml-128.png -text
 images/safehtml-32.png -text
 inc/safehtml.php -text
 lang/paquet-safehtml.xml -text
+lang/paquet-safehtml_ar.php -text
 lang/paquet-safehtml_en.php -text
 lang/paquet-safehtml_es.php -text
 lang/paquet-safehtml_fr_fem.php -text
