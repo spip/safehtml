@@ -11,6 +11,7 @@ lang/paquet-safehtml_fr_tu.php -text
 lang/paquet-safehtml_it.php -text
 lang/paquet-safehtml_nl.php -text
 lang/paquet-safehtml_pt.php -text
+lang/paquet-safehtml_pt_br.php -text
 lang/paquet-safehtml_ru.php -text
 lang/paquet-safehtml_sk.php -text
 lib/safehtml/classes/HTMLSax3.php -text
