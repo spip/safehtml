@@ -77,7 +77,8 @@ class SafeHTML
   'dl',   'dt',   'h1',  'h2',   'h3',  'h4', 
   'h5',   'h6',   'hr',  'isindex', 'listing',   'marquee', 
   'menu', 'multicol',   'ol',  'p',    'plaintext', 'pre', 
-  'table',   'ul',   'xmp', 
+  'table',   'ul',   'xmp',
+  'section', 'article', 'header', 'hgroup', 'footer', 'nav', 'aside', 'figure'
   );
 
  var $tableTags = array(
