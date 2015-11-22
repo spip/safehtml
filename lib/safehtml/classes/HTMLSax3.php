@@ -245,7 +245,7 @@ class XML_HTMLSax3 {
   }
  }
 
- function set_option($name, $value=1) {
+ function set_option($name, $value = 1) {
   if ( array_key_exists($name,$this->state_parser->parser_options) ) {
    $this->state_parser->parser_options[$name] = $value;
    return true;

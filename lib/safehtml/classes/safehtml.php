@@ -113,7 +113,7 @@ class SafeHTML
   return true;
  }
 
- function _writeAttrs ($attrs,$tag=null) 
+ function _writeAttrs ($attrs, $tag = null) 
  {
   if (is_array($attrs)) {
    foreach ($attrs as $name => $value) {
