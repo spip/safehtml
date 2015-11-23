@@ -154,7 +154,7 @@ class XML_HTMLSax3_StateParser {
 
 class XML_HTMLSax3_StateParser_Lt430 extends XML_HTMLSax3_StateParser {
  function __construct(& $htmlsax) {
-  parent::XML_HTMLSax3_StateParser($htmlsax);
+  parent::__construct($htmlsax);
   $this->parser_options['XML_OPTION_TRIM_DATA_NODES'] = 0;
   $this->parser_options['XML_OPTION_CASE_FOLDING'] = 0;
   $this->parser_options['XML_OPTION_LINEFEED_BREAK'] = 0;
@@ -186,7 +186,7 @@ class XML_HTMLSax3_StateParser_Lt430 extends XML_HTMLSax3_StateParser {
 
 class XML_HTMLSax3_StateParser_Gtet430 extends XML_HTMLSax3_StateParser {
  function __construct(& $htmlsax) {
-  parent::XML_HTMLSax3_StateParser($htmlsax);
+  parent::__construct($htmlsax);
   $this->parser_options['XML_OPTION_TRIM_DATA_NODES'] = 0;
   $this->parser_options['XML_OPTION_CASE_FOLDING'] = 0;
   $this->parser_options['XML_OPTION_LINEFEED_BREAK'] = 0;
