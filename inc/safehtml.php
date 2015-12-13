@@ -59,5 +59,3 @@ function inc_safehtml_dist($t) {
 
 	return $t;
 }
-
-?>
