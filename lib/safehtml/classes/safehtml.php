@@ -464,7 +464,7 @@ class SafeHTML
         }
             
         $this->_xhtml .= '<' . $name;
-        $this->_writeAttrs($attrs);
+        $this->_writeAttrs($attrs, $name);
         $this->_xhtml .= '>';
         array_push($this->_stack,$name);
         $this->_counter[$name] = isset($this->_counter[$name]) ? $this->_counter[$name]+1 : 1;
