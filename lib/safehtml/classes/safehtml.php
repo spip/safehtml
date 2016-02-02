@@ -34,6 +34,8 @@ class SafeHTML
  
  var $_cssRegexps = array();
 
+ var $repackUTF7 = true;
+
  var $singleTags = array('area', 'br', 'img', 'input', 'hr', 'wbr', );
 
  var $deleteTags = array(
@@ -92,7 +94,7 @@ class SafeHTML
 
  var $attributesNS = array('xml:lang', );
 
- function SafeHTML() 
+ function __contruct() 
  {
   //making regular expressions based on Proto & CSS arrays
   foreach ($this->blackProtocols as $proto) {
@@ -110,7 +112,7 @@ class SafeHTML
   return true;
  }
 
- function _writeAttrs ($attrs) 
+ function _writeAttrs ($attrs, $tag = null)
  {
   if (is_array($attrs)) {
    foreach ($attrs as $name => $value) {
@@ -123,7 +125,7 @@ class SafeHTML
     if (strpos($name, 'data') === 0) {
      continue;
     }
-    if (in_array($name, $this->attributes)) {
+    if ($tag != 'a' AND in_array($name, $this->attributes)) {
      continue;
     }
     if (!preg_match("/^[a-z0-9-]+$/i", $name)) {
@@ -166,8 +168,8 @@ class SafeHTML
        }
     }
 
-    $tempval = preg_replace('/&#(\d+);?/me', "chr('\\1')", $value); //"'
-    $tempval = preg_replace('/&#x([0-9a-f]+);?/mei', "chr(hexdec('\\1'))", $tempval);
+    $tempval = preg_replace_callback('/&#(\d+);?/m', create_function('$m', 'return chr($m[1]);'), $value); //"'
+    $tempval = preg_replace_callback('/&#x([0-9a-f]+);?/mi', create_function('$m', 'return chr(hexdec($m[1]));'), $tempval); //"'
 
     if ((in_array($name, $this->protocolAttributes)) && 
      (strpos($tempval, ':') !== false)) 
@@ -217,7 +219,7 @@ class SafeHTML
 
   if (in_array($name, $this->singleTags)) {
    $this->_xhtml .= '<' . $name;
-   $this->_writeAttrs($attrs);
+   $this->_writeAttrs($attrs, $name);
    $this->_xhtml .= ' />';
    return true;
   }
@@ -345,7 +347,8 @@ class SafeHTML
     $doc = str_replace("\xC0\xBC", '&lt;', $doc);
 
     // UTF-7 encoding ASCII decode
-    $doc = $this->repackUTF7($doc);
+    if ($this->repackUTF7)
+        $doc = $this->repackUTF7($doc);
 
     // Instantiate the parser
     $parser= new XML_HTMLSax3();
