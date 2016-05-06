@@ -14,4 +14,3 @@ $GLOBALS[$GLOBALS['idx_lang']] = array(
 	'safehtml_slogan' => 'حماية المنتديات من الأوامرالعابرة للمواقع '
 );
 
-?>

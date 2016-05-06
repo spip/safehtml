@@ -14,4 +14,3 @@ $GLOBALS[$GLOBALS['idx_lang']] = array(
 	'safehtml_slogan' => 'Bescherming van forums tegen cross-site scripting'
 );
 
-?>
