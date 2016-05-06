@@ -13,4 +13,3 @@ $GLOBALS[$GLOBALS['idx_lang']] = array(
 	'safehtml_description' => 'Защищает форму комментариев от межсайтового скриптинга (XSS)',
 	'safehtml_slogan' => 'Защищает форму комментариев от межсайтового скриптинга (XSS)'
 );
-

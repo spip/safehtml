@@ -13,4 +13,3 @@ $GLOBALS[$GLOBALS['idx_lang']] = array(
 	'safehtml_description' => 'Protection des forums contre les attaques de type cross-site scripting',
 	'safehtml_slogan' => 'Protection des forums contre le cross-site scripting'
 );
-
