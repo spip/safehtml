@@ -11,7 +11,7 @@
 \***************************************************************************/
 
 
-if (!defined("_ECRIRE_INC_VERSION")) {
+if (!defined('_ECRIRE_INC_VERSION')) {
 	return;
 }
 
@@ -55,7 +55,7 @@ function inc_safehtml_dist($t) {
 
 	// supprimer un <li></li> provenant d'un <li> ouvrant seul+safehtml
 	// cf https://core.spip.net/issues/2201
-	$t = str_replace("<li></li>", "", $t);
+	$t = str_replace('<li></li>', '', $t);
 
 	return $t;
 }
