@@ -4,7 +4,9 @@
  * SafeHTML Parser
  *
  * @note
- *     Attention : Quelques modifications pour PHP 5.5 et 7
+ *     Attention : 
+ *                Quelques modifications pour PHP 5.5 et 7
+ *                Modification pour vérification de tout les attributs
  * 
  * @package    SafeHTML
  * @author     Roman Ivanov <thingol@mail.ru>
@@ -202,16 +204,6 @@ class SafeHTML
         );
 
     /**
-     * List of attributes that can contain protocols
-     *
-     * @var array
-     * @access public
-     */
-    var $protocolAttributes = array(
-        'action', 'background', 'codebase', 'dynsrc', 'href', 'lowsrc', 'src', 
-        );
-
-    /**
      * List of dangerous CSS keywords
      *
      * Whole style="" attribute will be removed, if parser will find one of 
@@ -374,8 +366,7 @@ class SafeHTML
                 $tempval = preg_replace_callback('/&#(\d+);?/m', create_function('$m', 'return chr($m[1]);'), $value); //"'
                 $tempval = preg_replace_callback('/&#x([0-9a-f]+);?/mi', create_function('$m', 'return chr(hexdec($m[1]));'), $tempval); //"'
 
-                if ((in_array($name, $this->protocolAttributes)) && 
-                    (strpos($tempval, ':') !== false)) 
+                if ((strpos($tempval, ':') !== false)) 
                 {
                     if ($this->protocolFiltering == 'black') {
                         foreach ($this->_protoRegexps as $proto) {
