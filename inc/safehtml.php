@@ -17,7 +17,7 @@ if (!defined('_ECRIRE_INC_VERSION')) {
 
 // Controle la presence de la lib safehtml et cree la fonction
 // de transformation du texte qui l'exploite
-// http://code.spip.net/@inc_safehtml_dist
+// https://code.spip.net/@inc_safehtml_dist
 function inc_safehtml_dist($t) {
 	static $process, $test;
 
