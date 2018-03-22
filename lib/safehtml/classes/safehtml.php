@@ -371,8 +371,8 @@ class SafeHTML
                    }
                 }
 
-                $tempval = preg_replace_callback('/&#(\d+);?/m', create_function('$m', 'return chr($m[1]);'), $value); //"'
-                $tempval = preg_replace_callback('/&#x([0-9a-f]+);?/mi', create_function('$m', 'return chr(hexdec($m[1]));'), $tempval); //"'
+                $tempval = preg_replace_callback('/&#(\d+);?/m', function($m) { return chr($m[1]); }, $value); //"'
+                $tempval = preg_replace_callback('/&#x([0-9a-f]+);?/mi', function($m) { return chr(hexdec($m[1])); }, $tempval); //"'
 
                 if ((in_array($name, $this->protocolAttributes)) && 
                     (strpos($tempval, ':') !== false)) 
