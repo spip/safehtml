@@ -2,8 +2,8 @@
 SafeHTML pour SPIP
 
 --------
-Version 1.3.7.
-http://pixel-apes.com/safehtml/
+Version 1.3.10.
+https://bitbucket.org/wackowiki/wackowiki-dev/src/0861d16a01dd/wacko/lib/safehtml/
 --------
 
 Ce repertoire est extrait de SafeHTML 1.3.7 ; les fichiers suivants ont ete supprimes :
