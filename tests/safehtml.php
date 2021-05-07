@@ -647,12 +647,12 @@ echo(\'IPT>alert("XSS")</SCRIPT>\'); ?>',
   ),
   86 => 
   array (
-    0 => '<code class="echappe-js">&lt;IMG SRC=javascript:alert(&quot;XSS&quot;)&gt;</code>',
+    0 => '<code class="echappe-js">&lt;IMG SRC=java' . "\0" . 'script:alert(&quot;XSS&quot;)&gt;</code>',
     1 => '<IMG SRC=java' . "\0" . 'script:alert("XSS")>',
   ),
   87 => 
   array (
-    0 => '&',
+    0 => '&alert("XSS")',
     1 => '&<SCR' . "\0" . 'IPT>alert("XSS")</SCR' . "\0" . 'IPT>',
   ),
   88 => 
@@ -816,6 +816,8 @@ tt	p://6&#09;6.000146.0x7.147/">XSS</A>',
 );
 		return $essais;
 	}
+
+
 
 
 
