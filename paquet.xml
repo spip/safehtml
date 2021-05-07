@@ -17,7 +17,7 @@
 	<credit>JetStyle</credit>
 	<credit lien="https://bitbucket.org/wackowiki/wackowiki/src/master/wacko/lib/">https://wackowiki.org/doc/Dev/Projects/SafeHTML</credit>
 
-	<procure nom="safehtml" version="1.3.12" />
-
 	<licence lien="http://www.gnu.org/licenses/gpl-3.0.html">GPL</licence>
+
+	<procure nom="safehtml" version="1.3.12" />
 </paquet>
