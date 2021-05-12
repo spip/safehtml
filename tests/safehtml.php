@@ -813,9 +813,15 @@ tt	p://6&#09;6.000146.0x7.147/">XSS</A>',
     0 => '<a href="http://www.gohttp://www.google.com/ogle.com/">XSS</a>',
     1 => '<A HREF="http://www.gohttp://www.google.com/ogle.com/">XSS</A>',
   ),
+  119 => 
+  array (
+    0 => '<span class="montant" data-montant-nombre="100" data-montant-devise="EUR"></span>',
+    1 => '<span class="montant" data-montant-nombre="100" data-montant-devise="EUR">',
+  ),
 );
 		return $essais;
 	}
+
 
 
 
