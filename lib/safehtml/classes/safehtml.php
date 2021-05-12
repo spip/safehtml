@@ -300,23 +300,27 @@ class SafeHTML
 					continue;
 				}
 
-				if (strpos($name, 'data') === 0)
-				{
-					continue;
-				}
-
+				// MODIF SPIP : ne pas supprimer les attributs html5 data-xx
 				if (in_array($name, $this->attributes))
 				{
 					continue;
 				}
 
-				if (!preg_match('/^[a-z0-9]+$/i', $name))
+				// remove dataxx attributes but not the html5 data-xx one
+				if (strpos($name, 'data') === 0)
+				{
+					if (strpos($name, 'data-') !== 0 || (!preg_match('/^[a-z0-9-]+$/i', $name))) {
+						continue;
+					}
+				}
+				elseif (!preg_match('/^[a-z0-9]+$/i', $name))
 				{
 					if (!in_array($name, $this->attributesNS))
 					{
 						continue;
 					}
 				}
+				// FIN MODIF SPIP
 
 				if (($value === true) || (is_null($value)))
 				{
