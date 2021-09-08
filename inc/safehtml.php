@@ -10,7 +10,6 @@
  *  Pour plus de détails voir le fichier COPYING.txt ou l'aide en ligne.   *
 \***************************************************************************/
 
-
 if (!defined('_ECRIRE_INC_VERSION')) {
 	return;
 }
@@ -40,12 +39,12 @@ function inc_safehtml_dist($t) {
 	if ($test > 0) {
 		# reset ($process->clear() ne vide que _xhtml...),
 		# on doit pouvoir programmer ca plus propremement
-		$process->_counter = array();
-		$process->_stack = array();
-		$process->_dcCounter = array();
-		$process->_dcStack = array();
+		$process->_counter = [];
+		$process->_stack = [];
+		$process->_dcCounter = [];
+		$process->_dcStack = [];
 		$process->_listScope = 0;
-		$process->_liStack = array();
+		$process->_liStack = [];
 #		$process->parse(''); # cas particulier ?
 		$process->clear();
 		$t = $process->parse($t);
