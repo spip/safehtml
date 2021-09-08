@@ -1,0 +1,17 @@
+parameters:
+	ignoreErrors:
+		-
+			message: "#^Class SafeHTML referenced with incorrect case\\: safehtml\\.$#"
+			count: 1
+			path: inc/safehtml.php
+
+		-
+			message: "#^Function entites_html not found\\.$#"
+			count: 1
+			path: inc/safehtml.php
+
+		-
+			message: "#^Function find_in_path not found\\.$#"
+			count: 1
+			path: inc/safehtml.php
+
