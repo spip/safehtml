@@ -1,7 +1,7 @@
 <paquet
 	prefix="safehtml"
 	categorie="performance"
-	version="3.0.0"
+	version="3.0.1"
 	etat="stable"
 	compatibilite="[4.1.0;4.1.*]"
 	logo="images/safehtml-32.png"
