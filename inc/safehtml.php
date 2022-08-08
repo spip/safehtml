@@ -14,46 +14,51 @@ if (!defined('_ECRIRE_INC_VERSION')) {
 	return;
 }
 
-// Controle la presence de la lib safehtml et cree la fonction
-// de transformation du texte qui l'exploite
-function inc_safehtml_dist($t) {
-	static $process, $test;
+/**
+ * Sanitization du HTML via la librairie Purifier
+ * @param string $t
+ * @return false|string
+ */
+function inc_safehtml_dist(string $t): string {
+	static $purifier;
 
-	if (!$test) {
-		$process = false;
-		if ($f = find_in_path('lib/safehtml/classes')) {
-			define('XML_HTMLSAX3', $f . '/');
-			require_once XML_HTMLSAX3 . 'safehtml.php';
-			$process = new safehtml();
-			$process->deleteTags[] = 'param'; // sinon bug Firefox
+	if (!isset($purifier)) {
+		require_spip('lib/htmlpurifier/HTMLPurifier.standalone');
+		require_spip('inc/HTMLPurifier.extended');
+		require_spip('inc/HTMLPurifier_HTML5.loader');
+
+		$config = HTMLPurifier_HTML5Config::createDefault();
+
+		$config->set('HTML.Forms', true);
+
+		if ($iniFile = find_in_path('safehtml/htmlpurifier.ini')) {
+			$config->loadIni($iniFile);
+		} else {
+
+			$config->set('Attr.EnableID', true);
+			$config->set('HTML.TidyLevel', 'none');
+			$config->set('Cache.SerializerPath', rtrim(realpath(sous_repertoire(_DIR_CACHE, 'html_purifier')), '/'));
+
+			// trop severe pour une utilisation generique ?
+			#$config->set('HTML.SafeIframe', true);
+			#$config->set('URI.SafeIframeRegexp', '%^http[s]?://[a-z0-9\.]*' . $_SERVER['HTTP_HOST'] . '/%iS');
+
+			$config->set('Attr.AllowedFrameTargets', ['_blank']);
+			$config->set('Attr.AllowedRel', 'nofollow,print,external,bookmark');
+
+			$config->set('URI.AllowedSchemes', ['http' => true, 'https' => true, 'mailto' => true, 'ftp' => true, 'nntp' => true, 'news' => true, 'tel' => true, 'tcp' => true, 'udp' => true, 'ssh' => true,]);
 		}
-		if ($process) {
-			$test = 1;
-		} # ok
-		else {
-			$test = -1;
-		} # se rabattre sur une fonction de securite basique
+
+		$purifier = new HTMLPurifier($config);
 	}
 
-	if ($test > 0) {
-		# reset ($process->clear() ne vide que _xhtml...),
-		# on doit pouvoir programmer ca plus propremement
-		$process->_counter = [];
-		$process->_stack = [];
-		$process->_dcCounter = [];
-		$process->_dcStack = [];
-		$process->_listScope = 0;
-		$process->_liStack = [];
-#		$process->parse(''); # cas particulier ?
-		$process->clear();
-		$t = $process->parse($t);
+	// HTML Purifier prefere l'utf-8
+	$charset = (empty($GLOBALS['meta']['charset']) ? _DEFAULT_CHARSET : $GLOBALS['meta']['charset']);
+	if ($charset === 'utf-8') {
+		$t = $purifier->purify($t);
 	} else {
-		$t = entites_html($t);
-	} // tres laid, en cas d'erreur
-
-	// supprimer un <li></li> provenant d'un <li> ouvrant seul+safehtml
-	// cf https://core.spip.net/issues/2201
-	$t = str_replace('<li></li>', '', $t);
+		$t = unicode2charset($purifier->purify(charset2unicode($t)));
+	}
 
 	return $t;
 }
