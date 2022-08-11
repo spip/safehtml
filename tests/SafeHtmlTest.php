@@ -124,12 +124,12 @@ paragraphes',
   ),
   17 =>
   array (
-    0 => '<code class="echappe-js">&lt;BGSOUND SRC=&quot;javascript:alert(\'XSS\');&quot;&gt;</code>',
+    0 => '<code class="echappe-js">&lt;BGSOUND SRC="javascript:alert(\'XSS\');"&gt;</code>',
     1 => '<BGSOUND SRC="javascript:alert(\'XSS\');">',
   ),
   18 =>
   array (
-    0 => '<code class="echappe-js">&lt;BODY BACKGROUND=&quot;javascript:alert(\'XSS\');&quot;&gt;</code>',
+    0 => '<code class="echappe-js">&lt;BODY BACKGROUND="javascript:alert(\'XSS\');"&gt;</code>',
     1 => '<BODY BACKGROUND="javascript:alert(\'XSS\');">',
   ),
   19 =>
@@ -159,7 +159,7 @@ paragraphes',
   ),
   24 =>
   array (
-    0 => '<code class="echappe-js">&lt;IFRAME SRC=&quot;javascript:alert(\'XSS\');&quot;&gt;&lt;/IFRAME&gt;</code>',
+    0 => '<code class="echappe-js">&lt;IFRAME SRC="javascript:alert(\'XSS\');"&gt;&lt;/IFRAME&gt;</code>',
     1 => '<IFRAME SRC="javascript:alert(\'XSS\');"></IFRAME>',
   ),
   25 =>
@@ -169,7 +169,7 @@ paragraphes',
   ),
   26 =>
   array (
-    0 => '<code class="echappe-js">&lt;IMG SRC=&quot;javascript:alert(\'XSS\');&quot;&gt;</code>',
+    0 => '<code class="echappe-js">&lt;IMG SRC="javascript:alert(\'XSS\');"&gt;</code>',
     1 => '<IMG SRC="javascript:alert(\'XSS\');">',
   ),
   27 =>
@@ -179,12 +179,12 @@ paragraphes',
   ),
   28 =>
   array (
-    0 => '<code class="echappe-js">&lt;IMG DYNSRC=&quot;javascript:alert(\'XSS\');&quot;&gt;</code>',
+    0 => '<code class="echappe-js">&lt;IMG DYNSRC="javascript:alert(\'XSS\');"&gt;</code>',
     1 => '<IMG DYNSRC="javascript:alert(\'XSS\');">',
   ),
   29 =>
   array (
-    0 => '<code class="echappe-js">&lt;IMG LOWSRC=&quot;javascript:alert(\'XSS\');&quot;&gt;</code>',
+    0 => '<code class="echappe-js">&lt;IMG LOWSRC="javascript:alert(\'XSS\');"&gt;</code>',
     1 => '<IMG LOWSRC="javascript:alert(\'XSS\');">',
   ),
   30 =>
@@ -205,7 +205,7 @@ xss:&#101;x&#x2F;*XSS*//*/*/pression(alert("XSS"))\'>',
   ),
   33 =>
   array (
-    0 => '<code class="echappe-js">&lt;IMG SRC=\'vbscript:msgbox(&quot;XSS&quot;)\'&gt;</code>',
+    0 => '<code class="echappe-js">&lt;IMG SRC=\'vbscript:msgbox("XSS")\'&gt;</code>',
     1 => '<IMG SRC=\'vbscript:msgbox("XSS")\'>',
   ),
   34 =>
@@ -215,7 +215,7 @@ xss:&#101;x&#x2F;*XSS*//*/*/pression(alert("XSS"))\'>',
   ),
   35 =>
   array (
-    0 => '<code class="echappe-js">&lt;IMG SRC=&quot;livescript:[code]&quot;&gt;</code>',
+    0 => '<code class="echappe-js">&lt;IMG SRC="livescript:[code]"&gt;</code>',
     1 => '<IMG SRC="livescript:[code]">',
   ),
   36 =>
@@ -225,17 +225,17 @@ xss:&#101;x&#x2F;*XSS*//*/*/pression(alert("XSS"))\'>',
   ),
   37 =>
   array (
-    0 => '<code class="echappe-js">&lt;META HTTP-EQUIV=&quot;refresh&quot; CONTENT=&quot;0;url=javascript:alert(\'XSS\');&quot;&gt;</code>',
+    0 => '<code class="echappe-js">&lt;META HTTP-EQUIV="refresh" CONTENT="0;url=javascript:alert(\'XSS\');"&gt;</code>',
     1 => '<META HTTP-EQUIV="refresh" CONTENT="0;url=javascript:alert(\'XSS\');">',
   ),
   38 =>
   array (
-    0 => '<code class="echappe-js">&lt;META HTTP-EQUIV=&quot;refresh&quot; CONTENT=&quot;0;url=data:text/html;base64,PHNjcmlwdD5hbGVydCgnWFNTJyk8L3NjcmlwdD4K&quot;&gt;</code>',
+    0 => '<code class="echappe-js">&lt;META HTTP-EQUIV="refresh" CONTENT="0;url=data:text/html;base64,PHNjcmlwdD5hbGVydCgnWFNTJyk8L3NjcmlwdD4K"&gt;</code>',
     1 => '<META HTTP-EQUIV="refresh" CONTENT="0;url=data:text/html;base64,PHNjcmlwdD5hbGVydCgnWFNTJyk8L3NjcmlwdD4K">',
   ),
   39 =>
   array (
-    0 => '<code class="echappe-js">&lt;META HTTP-EQUIV=&quot;refresh&quot; CONTENT=&quot;0; URL=http://;URL=javascript:alert(\'XSS\');&quot;&gt;</code>',
+    0 => '<code class="echappe-js">&lt;META HTTP-EQUIV="refresh" CONTENT="0; URL=http://;URL=javascript:alert(\'XSS\');"&gt;</code>',
     1 => '<META HTTP-EQUIV="refresh" CONTENT="0; URL=http://;URL=javascript:alert(\'XSS\');">',
   ),
   40 =>
@@ -568,7 +568,7 @@ echo(\'IPT>alert("XSS")</SCRIPT>\'); ?>',
   ),
   71 =>
   array (
-    0 => '<code class="echappe-js">&lt;IMG SRC=`javascript:alert(&quot;RSnake says, \'XSS\'&quot;)`&gt;</code>',
+    0 => '<code class="echappe-js">&lt;IMG SRC=`javascript:alert("RSnake says, \'XSS\'")`&gt;</code>',
     1 => '<IMG SRC=`javascript:alert("RSnake says, \'XSS\'")`>',
   ),
   72 =>
@@ -618,22 +618,22 @@ echo(\'IPT>alert("XSS")</SCRIPT>\'); ?>',
   ),
   81 =>
   array (
-    0 => '<code class="echappe-js">&lt;IMG SRC=&quot;jav	ascript:alert(\'XSS\');&quot;&gt;</code>',
+    0 => '<code class="echappe-js">&lt;IMG SRC="jav	ascript:alert(\'XSS\');"&gt;</code>',
     1 => '<IMG SRC="jav	ascript:alert(\'XSS\');">',
   ),
   82 =>
   array (
-    0 => '<code class="echappe-js">&lt;IMG SRC=&quot;jav&amp;#x09;ascript:alert(\'XSS\');&quot;&gt;</code>',
+    0 => '<code class="echappe-js">&lt;IMG SRC="jav&amp;#x09;ascript:alert(\'XSS\');"&gt;</code>',
     1 => '<IMG SRC="jav&#x09;ascript:alert(\'XSS\');">',
   ),
   83 =>
   array (
-    0 => '<code class="echappe-js">&lt;IMG SRC=&quot;jav&amp;#x0A;ascript:alert(\'XSS\');&quot;&gt;</code>',
+    0 => '<code class="echappe-js">&lt;IMG SRC="jav&amp;#x0A;ascript:alert(\'XSS\');"&gt;</code>',
     1 => '<IMG SRC="jav&#x0A;ascript:alert(\'XSS\');">',
   ),
   84 =>
   array (
-    0 => '<code class="echappe-js">&lt;IMG SRC=&quot;jav&amp;#x0D;ascript:alert(\'XSS\');&quot;&gt;</code>',
+    0 => '<code class="echappe-js">&lt;IMG SRC="jav&amp;#x0D;ascript:alert(\'XSS\');"&gt;</code>',
     1 => '<IMG SRC="jav&#x0D;ascript:alert(\'XSS\');">',
   ),
   85 =>
@@ -673,7 +673,7 @@ S
   ),
   86 =>
   array (
-    0 => '<code class="echappe-js">&lt;IMG SRC=java' . "\0" . 'script:alert(&quot;XSS&quot;)&gt;</code>',
+    0 => '<code class="echappe-js">&lt;IMG SRC=java' . "\0" . 'script:alert("XSS")&gt;</code>',
     1 => '<IMG SRC=java' . "\0" . 'script:alert("XSS")>',
   ),
   87 =>
@@ -683,7 +683,7 @@ S
   ),
   88 =>
   array (
-    0 => '<code class="echappe-js">&lt;IMG SRC=&quot; &amp;#14;  javascript:alert(\'XSS\');&quot;&gt;</code>',
+    0 => '<code class="echappe-js">&lt;IMG SRC=" &amp;#14;  javascript:alert(\'XSS\');"&gt;</code>',
     1 => '<IMG SRC=" &#14;  javascript:alert(\'XSS\');">',
   ),
   89 =>
@@ -708,7 +708,7 @@ S
   ),
   93 =>
   array (
-    0 => '<code class="echappe-js">&lt;IMG SRC=&quot;javascript:alert(\'XSS\')&quot;</code>',
+    0 => '<code class="echappe-js">&lt;IMG SRC="javascript:alert(\'XSS\')"</code>',
     1 => '<IMG SRC="javascript:alert(\'XSS\')"',
   ),
   94 =>
