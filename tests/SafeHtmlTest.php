@@ -25,7 +25,15 @@ class SafeHtmlTest extends TestCase {
 	 */
 	public function testXSS($expected, $source) {
 		$safehtml = static::$safehtml;
-		$this->assertEquals($expected, $safehtml($source));
+		$actual = $safehtml($source);
+		if (is_string($expected) and strpos($expected, "&quot;") !== false) {
+			$expected = [$expected, str_replace('&quot;', '"', $expected)];
+		}
+		if (is_array($expected)) {
+			$this->assertContains($actual, $expected);
+		} else {
+			$this->assertEquals($expected, $actual);
+		}
 	}
 
 
@@ -43,7 +51,10 @@ class SafeHtmlTest extends TestCase {
   ),
   2 =>
   array (
-    0 => 'Un texte avec des <a href="http://spip.net">liens</a> [Article 1->art1] [spip->https://www.spip.net] https://www.spip.net',
+    0 => [
+		'Un texte avec des <a href="http://spip.net">liens</a> [Article 1->art1] [spip->https://www.spip.net] https://www.spip.net',
+		'Un texte avec des <a href="http://spip.net">liens</a> [Article 1-&gt;art1] [spip-&gt;https://www.spip.net] https://www.spip.net',
+	],
     1 => 'Un texte avec des <a href="http://spip.net">liens</a> [Article 1->art1] [spip->https://www.spip.net] https://www.spip.net',
   ),
   3 =>
@@ -68,7 +79,10 @@ class SafeHtmlTest extends TestCase {
   ),
   7 =>
   array (
-    0 => 'Un texte sans entites &&lt;>"\'',
+    0 => [
+		'Un texte sans entites &&lt;>"\'',
+		'Un texte sans entites &amp;&lt;&gt;"\'',
+	],
     1 => 'Un texte sans entites &<>"\'',
   ),
   8 =>
@@ -78,7 +92,10 @@ class SafeHtmlTest extends TestCase {
   ),
   9 =>
   array (
-    0 => 'Un modele https://www.spip.net]>',
+    0 => [
+		'Un modele https://www.spip.net]>',
+		'Un modele https://www.spip.net]&gt;',
+	],
     1 => 'Un modele <modeleinexistant|lien=[->https://www.spip.net]>',
   ),
   10 =>
@@ -94,12 +111,18 @@ paragraphes',
   ),
   11 =>
   array (
-    0 => '\';alert(String.fromCharCode(88,83,83))//\\\';alert(String.fromCharCode(88,83,83))//";alert(String.fromCharCode(88,83,83))//\\";alert(String.fromCharCode(88,83,83))//-->">\'><code class="echappe-js">&lt;SCRIPT&gt;alert(String.fromCharCode(88,83,83))&lt;/SCRIPT&gt;</code>=&{}',
+    0 => [
+	    '\';alert(String.fromCharCode(88,83,83))//\\\';alert(String.fromCharCode(88,83,83))//";alert(String.fromCharCode(88,83,83))//\\";alert(String.fromCharCode(88,83,83))//-->">\'><code class="echappe-js">&lt;SCRIPT&gt;alert(String.fromCharCode(88,83,83))&lt;/SCRIPT&gt;</code>=&{}',
+	    '\';alert(String.fromCharCode(88,83,83))//\\\';alert(String.fromCharCode(88,83,83))//";alert(String.fromCharCode(88,83,83))//\\";alert(String.fromCharCode(88,83,83))//--&gt;"&gt;\'&gt;<code class="echappe-js">&lt;SCRIPT&gt;alert(String.fromCharCode(88,83,83))&lt;/SCRIPT&gt;</code>=&amp;{}',
+    ],
     1 => '\';alert(String.fromCharCode(88,83,83))//\\\';alert(String.fromCharCode(88,83,83))//";alert(String.fromCharCode(88,83,83))//\\";alert(String.fromCharCode(88,83,83))//--></SCRIPT>">\'><SCRIPT>alert(String.fromCharCode(88,83,83))</SCRIPT>=&{}',
   ),
   12 =>
   array (
-    0 => '\'\';!--"<xss>=&{()}</xss>',
+    0 => [
+		'\'\';!--"<xss>=&{()}</xss>',
+		'\'\';!--"=&amp;{()}',
+	],
     1 => '\'\';!--"<XSS>=&{()}',
   ),
   13 =>
@@ -119,7 +142,10 @@ paragraphes',
   ),
   16 =>
   array (
-    0 => '&lt;base HREF="javascript:alert(\'XSS\');//">',
+    0 => [
+		'&lt;base HREF="javascript:alert(\'XSS\');//">',
+		'&lt;base HREF="javascript:alert(\'XSS\');//"&gt;',
+	],
     1 => '<BASE HREF="javascript:alert(\'XSS\');//">',
   ),
   17 =>
@@ -164,7 +190,10 @@ paragraphes',
   ),
   25 =>
   array (
-    0 => '<input type="IMAGE" />',
+    0 => [
+		'<input type="IMAGE" />',
+		'<input type="image" />',
+	],
     1 => '<INPUT TYPE="IMAGE" SRC="javascript:alert(\'XSS\');">',
   ),
   26 =>
@@ -189,12 +218,18 @@ paragraphes',
   ),
   30 =>
   array (
-    0 => '<img src="http://www.thesiteyouareon.com/somecommand.php?somevariables=maliciouscode" />',
+    0 => [
+	    '<img src="http://www.thesiteyouareon.com/somecommand.php?somevariables=maliciouscode" />',
+	    '<img src="http://www.thesiteyouareon.com/somecommand.php?somevariables=maliciouscode" alt="somecommand.php?somevariables=maliciouscode" />',
+    ],
     1 => '<IMG SRC="http://www.thesiteyouareon.com/somecommand.php?somevariables=maliciouscode">',
   ),
   31 =>
   array (
-    0 => 'exp/*<xss style="noxss:noxss(&quot;*/pression(alert(&quot;XSS&quot;))"></xss>',
+    0 => [
+	    'exp/*<xss style="noxss:noxss(&quot;*/pression(alert(&quot;XSS&quot;))"></xss>',
+	    'exp/*',
+    ],
     1 => 'exp/*<XSS STYLE=\'no\\xss:noxss("*//*");
 xss:&#101;x&#x2F;*XSS*//*/*/pression(alert("XSS"))\'>',
   ),
@@ -240,7 +275,10 @@ xss:&#101;x&#x2F;*XSS*//*/*/pression(alert("XSS"))\'>',
   ),
   40 =>
   array (
-    0 => '<img />',
+    0 => [
+		'<img />',
+		'',
+	],
     1 => '<IMG SRC="mocha:[code]">',
   ),
   41 =>
@@ -265,12 +303,18 @@ xss:&#101;x&#x2F;*XSS*//*/*/pression(alert("XSS"))\'>',
   ),
   45 =>
   array (
-    0 => '<img />',
+    0 => [
+		'<img />',
+		'',
+	],
     1 => '<IMG STYLE="xss:expr/*XSS*/ession(alert(\'XSS\'))">',
   ),
   46 =>
   array (
-    0 => '<xss></xss>',
+    0 => [
+		'<xss></xss>',
+		'',
+	],
     1 => '<XSS STYLE="xss:expression(alert(\'XSS\'))">',
   ),
   47 =>
@@ -310,21 +354,32 @@ xss:&#101;x&#x2F;*XSS*//*/*/pression(alert("XSS"))\'>',
   ),
   54 =>
   array (
-    0 => '<table></table>',
+    0 => [
+		'<table></table>',
+		'',
+	],
     1 => '<TABLE BACKGROUND="javascript:alert(\'XSS\')"></TABLE>',
   ),
   55 =>
   array (
-    0 => '<table><td></td></table>',
+    0 => [
+		'<table><td></td></table>',
+	    '',
+	],
     1 => '<TABLE><TD BACKGROUND="javascript:alert(\'XSS\')"></TD></TABLE>',
   ),
   56 =>
   array (
-    0 => '
+    0 => [
+		'
 &lt;?import namespace="xss" implementation="http://ha.ckers.org/xss.htc">
 XSS
 
 ',
+		'
+&lt;?import namespace="xss" implementation="http://ha.ckers.org/xss.htc"&gt;
+XSS',
+	],
     1 => '<HTML xmlns:xss>
 <?import namespace="xss" implementation="http://ha.ckers.org/xss.htc">
 <xss:xss>XSS</xss:xss>
@@ -333,34 +388,51 @@ XSS
   ),
   57 =>
   array (
-    0 => '<span></span>',
+    0 => [
+		'<span></span>',
+		'&lt;IMG SRC="javascript:alert(\'XSS\');"&gt;
+
+<span></span>',
+	],
     1 => '<XML ID=I><X><C><![CDATA[<IMG SRC="javas]]><![CDATA[cript:alert(\'XSS\');">]]>
 
 </C></X></xml><SPAN DATASRC=#I DATAFLD=C DATAFORMATAS=HTML>',
   ),
   58 =>
   array (
-    0 => '
+    0 => ['
 
 <span></span>',
+	    '<i><b><img src="javas" alt="javas&lt;!-- --&gt;cript:alert(\'XSS\')" /></b></i><span></span>',
+	],
     1 => '<XML ID="xss"><I><B><IMG SRC="javas<!-- -->cript:alert(\'XSS\')"></B></I></XML>
 
 <SPAN DATASRC="#xss" DATAFLD="B" DATAFORMATAS="HTML"></SPAN>',
   ),
   59 =>
   array (
-    0 => '
+    0 => [
+		'
 <span></span>',
+		'<span></span>',
+	],
     1 => '<XML SRC="http://ha.ckers.org/xsstest.xml" ID=I></XML>
 <SPAN DATASRC=#I DATAFLD=C DATAFORMATAS=HTML></SPAN>',
   ),
   60 =>
   array (
-    0 => '
+    0 => [
+	    '
 &lt;?xml:namespace prefix="t" ns="urn:schemas-microsoft-com:time">
 
 &lt;?import namespace="t" implementation="#default#time2">
 &lt;SCRIPT DEFER&gt;alert(\'XSS\')&lt;/SCRIPT&gt;"> ',
+	    '
+&lt;?xml:namespace prefix="t" ns="urn:schemas-microsoft-com:time"&gt;
+
+&lt;?import namespace="t" implementation="#default#time2"&gt;
+&lt;SCRIPT DEFER&gt;alert(\'XSS\')&lt;/SCRIPT&gt;"&gt; ',
+    ],
     1 => '<HTML><BODY>
 <?xml:namespace prefix="t" ns="urn:schemas-microsoft-com:time">
 
@@ -376,12 +448,18 @@ XSS
   ),
   62 =>
   array (
-    0 => '&lt;SCRIPT&gt;alert(\'XSS\')&lt;/SCRIPT&gt;">',
+    0 => [
+		'&lt;SCRIPT&gt;alert(\'XSS\')&lt;/SCRIPT&gt;">',
+		'&lt;SCRIPT&gt;alert(\'XSS\')&lt;/SCRIPT&gt;"&gt;',
+	],
     1 => '<META HTTP-EQUIV="Set-Cookie" Content="USERID=<SCRIPT>alert(\'XSS\')</SCRIPT>">',
   ),
   63 =>
   array (
-    0 => '<xss></xss>',
+    0 => [
+		'<xss></xss>',
+		'',
+	],
     1 => '<XSS STYLE="behavior: url(http://ha.ckers.org/xss.htc);">',
   ),
   64 =>
@@ -396,18 +474,25 @@ XSS
   ),
   66 =>
   array (
-    0 => '&lt;? echo(\'alert("XSS")\'); ?>',
+    0 => [
+		'&lt;? echo(\'alert("XSS")\'); ?>',
+		'&lt;? echo(\'alert("XSS")\'); ?&gt;',
+	],
     1 => '<? echo(\'<SCR)\';
 echo(\'IPT>alert("XSS")</SCRIPT>\'); ?>',
   ),
   67 =>
   array (
-    0 => '<br size="&{alert(\'XSS\')}" />',
+    0 => [
+		'<br size="&{alert(\'XSS\')}" />',
+		'<br />',
+	],
     1 => '<BR SIZE="&{alert(\'XSS\')}">',
   ),
   68 =>
   array (
-    0 => '&lt;
+    0 => [
+		'&lt;
 %3C
 &lt
 &lt;
@@ -481,6 +566,81 @@ echo(\'IPT>alert("XSS")</SCRIPT>\'); ?>',
 \\x3C
 \\u003c
 \\u003C',
+		'&lt;
+%3C
+&amp;lt
+&lt;
+&amp;LT
+&amp;LT;
+&lt;
+&lt;
+&lt;
+
+&lt;
+&lt;
+&lt;
+&lt;
+&lt;
+&lt;
+&lt;
+&lt;
+&lt;
+&lt;
+&lt;
+&lt;
+&lt;
+&lt;
+&lt;
+&lt;
+&lt;
+
+&lt;
+&lt;
+&lt;
+&lt;
+&lt;
+&lt;
+&lt;
+&lt;
+&lt;
+&lt;
+&lt;
+&lt;
+&lt;
+&lt;
+&lt;
+&lt;
+&lt;
+
+&lt;
+&lt;
+&lt;
+&lt;
+&lt;
+&lt;
+&lt;
+&lt;
+&lt;
+&lt;
+&lt;
+&lt;
+&lt;
+&lt;
+&lt;
+&lt;
+&lt;
+
+&lt;
+&lt;
+&lt;
+&lt;
+&lt;
+&lt;
+\\x3c
+\\x3C
+\\u003c
+\\u003C',
+],
     1 => '<
 %3C
 &lt
@@ -578,27 +738,42 @@ echo(\'IPT>alert("XSS")</SCRIPT>\'); ?>',
   ),
   73 =>
   array (
-    0 => '<img />',
+    0 => [
+		'<img />',
+	    ''
+	],
     1 => '<IMG SRC=&#106;&#97;&#118;&#97;&#115;&#99;&#114;&#105;&#112;&#116;&#58;&#97;&#108;&#101;&#114;&#116;&#40;&#39;&#88;&#83;&#83;&#39;&#41;>',
   ),
   74 =>
   array (
-    0 => '<img />',
+    0 => [
+		'<img />',
+		'',
+	],
     1 => '<IMG SRC=&#0000106&#0000097&#0000118&#0000097&#0000115&#0000099&#0000114&#0000105&#0000112&#0000116&#0000058&#0000097&#0000108&#0000101&#0000114&#0000116&#0000040&#0000039&#0000088&#0000083&#0000083&#0000039&#0000041>',
   ),
   75 =>
   array (
-    0 => '<div style="background-image:00750072006C0028\'006a006100760061007300630072006900700074003a0061006c0065007200740028.10270058.1053005300270029\'0029"></div>',
+    0 => [
+		'<div style="background-image:00750072006C0028\'006a006100760061007300630072006900700074003a0061006c0065007200740028.10270058.1053005300270029\'0029"></div>',
+	    '<div></div>'
+	],
     1 => '<DIV STYLE="background-image:\\0075\\0072\\006C\\0028\'\\006a\\0061\\0076\\0061\\0073\\0063\\0072\\0069\\0070\\0074\\003a\\0061\\006c\\0065\\0072\\0074\\0028.1027\\0058.1053\\0053\\0027\\0029\'\\0029">',
   ),
   76 =>
   array (
-    0 => '<img />',
+    0 => [
+		'<img />',
+	    '',
+	],
     1 => '<IMG SRC=&#x6A&#x61&#x76&#x61&#x73&#x63&#x72&#x69&#x70&#x74&#x3A&#x61&#x6C&#x65&#x72&#x74&#x28&#x27&#x58&#x53&#x53&#x27&#x29>',
   ),
   77 =>
   array (
-    0 => ' ',
+    0 => [
+		' ',
+	    '+ADw-SCRIPT+AD4-alert(\'XSS\');+ADw-/SCRIPT+AD4-',
+	],
     1 => '<HEAD><META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=UTF-7"> </HEAD>+ADw-SCRIPT+AD4-alert(\'XSS\');+ADw-/SCRIPT+AD4-',
   ),
   78 =>
@@ -638,8 +813,11 @@ echo(\'IPT>alert("XSS")</SCRIPT>\'); ?>',
   ),
   85 =>
   array (
-    0 => '<img />
+    0 => [
+		'<img />
 ',
+	    '<img src="j%20a%20v%20a%20s%20c%20r%20i%20p%20t%20%3A%20a%20l%20e%20r%20t%20(%20\'%20X%20S%20S%20\'%20)" alt="j a v a s c r i p t : a l e r t ( \' X S S \' )" />',
+	],
     1 => '<IMG
 SRC
 =
@@ -673,12 +851,18 @@ S
   ),
   86 =>
   array (
-    0 => '<code class="echappe-js">&lt;IMG SRC=java' . "\0" . 'script:alert("XSS")&gt;</code>',
+    0 => [
+		'<code class="echappe-js">&lt;IMG SRC=java' . "\0" . 'script:alert("XSS")&gt;</code>',
+		'<code class="echappe-js">&lt;IMG SRC=javascript:alert("XSS")&gt;</code>',
+	],
     1 => '<IMG SRC=java' . "\0" . 'script:alert("XSS")>',
   ),
   87 =>
   array (
-    0 => '&alert("XSS")',
+    0 => [
+		'&alert("XSS")',
+		'&amp;',
+	],
     1 => '&<SCR' . "\0" . 'IPT>alert("XSS")</SCR' . "\0" . 'IPT>',
   ),
   88 =>
@@ -693,7 +877,10 @@ S
   ),
   90 =>
   array (
-    0 => '|\\]^`=alert("XSS")>',
+    0 => [
+		'|\\]^`=alert("XSS")>',
+		'',
+	],
     1 => '<BODY onload!#$%&()*~+-_.,:;?@[/|\\]^`=alert("XSS")>',
   ),
   91 =>
@@ -723,7 +910,10 @@ S
   ),
   96 =>
   array (
-    0 => '<img /><code class="echappe-js">&lt;SCRIPT&gt;alert(&quot;XSS&quot;)&lt;/SCRIPT&gt;</code>">',
+    0 => [
+		'<img /><code class="echappe-js">&lt;SCRIPT&gt;alert(&quot;XSS&quot;)&lt;/SCRIPT&gt;</code>">',
+		'<code class="echappe-js">&lt;SCRIPT&gt;alert("XSS")&lt;/SCRIPT&gt;</code>"&gt;',
+	],
     1 => '<IMG """><SCRIPT>alert("XSS")</SCRIPT>">',
   ),
   97 =>
@@ -760,7 +950,10 @@ alert(a.source)</SCRIPT>',
   ),
   103 =>
   array (
-    0 => '<code class="echappe-js">&lt;SCRIPT&gt;document.write(&quot;&lt;SCRI&quot;);&lt;/SCRIPT&gt;</code>PT SRC="http://ha.ckers.org/xss.js">',
+    0 => [
+	    '<code class="echappe-js">&lt;SCRIPT&gt;document.write(&quot;&lt;SCRI&quot;);&lt;/SCRIPT&gt;</code>PT SRC="http://ha.ckers.org/xss.js">',
+	    '<code class="echappe-js">&lt;SCRIPT&gt;document.write("&lt;SCRI");&lt;/SCRIPT&gt;</code>PT SRC="http://ha.ckers.org/xss.js"&gt;',
+    ],
     1 => '<SCRIPT>document.write("<SCRI");</SCRIPT>PT SRC="http://ha.ckers.org/xss.js"></SCRIPT>',
   ),
   104 =>
@@ -775,7 +968,10 @@ alert(a.source)</SCRIPT>',
   ),
   106 =>
   array (
-    0 => '<a href="http://%77%77%77%2E%67%6F%6F%67%6C%65%2E%63%6F%6D">XSS</a>',
+    0 => [
+		'<a href="http://%77%77%77%2E%67%6F%6F%67%6C%65%2E%63%6F%6D">XSS</a>',
+		'<a href="http://www.google.com">XSS</a>',
+	],
     1 => '<A HREF="http://%77%77%77%2E%67%6F%6F%67%6C%65%2E%63%6F%6D">XSS</A>',
   ),
   107 =>
@@ -795,7 +991,10 @@ alert(a.source)</SCRIPT>',
   ),
   110 =>
   array (
-    0 => '<a>XSS</a>',
+    0 => [
+		'<a>XSS</a>',
+		'<a href="h%20tt%20p%3A//6%206.000146.0x7.147/">XSS</a>',
+	],
     1 => '<A HREF="h
 tt	p://6&#09;6.000146.0x7.147/">XSS</A>',
   ),
@@ -811,12 +1010,18 @@ tt	p://6&#09;6.000146.0x7.147/">XSS</A>',
   ),
   113 =>
   array (
-    0 => '<a href="http://ha.ckers.org@google">XSS</a>',
+    0 => [
+		'<a href="http://ha.ckers.org@google">XSS</a>',
+		'<a href="http://google">XSS</a>',
+	],
     1 => '<A HREF="http://ha.ckers.org@google">XSS</A>',
   ),
   114 =>
   array (
-    0 => '<a href="http://google:ha.ckers.org">XSS</a>',
+    0 => [
+		'<a href="http://google:ha.ckers.org">XSS</a>',
+		'<a href="http://google">XSS</a>',
+	],
     1 => '<A HREF="http://google:ha.ckers.org">XSS</A>',
   ),
   115 =>
@@ -836,7 +1041,10 @@ tt	p://6&#09;6.000146.0x7.147/">XSS</A>',
   ),
   118 =>
   array (
-    0 => '<a href="http://www.gohttp://www.google.com/ogle.com/">XSS</a>',
+    0 => [
+		'<a href="http://www.gohttp://www.google.com/ogle.com/">XSS</a>', // safehtml
+		'<a href="http://www.gohttp//www.google.com/ogle.com/">XSS</a>', // htmlpurifier
+		],
     1 => '<A HREF="http://www.gohttp://www.google.com/ogle.com/">XSS</A>',
   ),
   119 =>
