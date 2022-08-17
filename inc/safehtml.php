@@ -36,15 +36,6 @@ function inc_safehtml_dist($t) {
 	}
 
 	if ($test > 0) {
-		# reset ($process->clear() ne vide que _xhtml...),
-		# on doit pouvoir programmer ca plus propremement
-		$process->_counter = [];
-		$process->_stack = [];
-		$process->_dcCounter = [];
-		$process->_dcStack = [];
-		$process->_listScope = 0;
-		$process->_liStack = [];
-#		$process->parse(''); # cas particulier ?
 		$process->clear();
 		$t = $process->parse($t);
 	} else {
