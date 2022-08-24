@@ -25,13 +25,16 @@ function inc_safehtml_dist(string $t): string {
 	if (!isset($purifier)) {
 		require_spip('lib/htmlpurifier/HTMLPurifier.standalone');
 		require_spip('inc/HTMLPurifier.extended');
+		require_spip('inc/HTMLPurifier_HTML5.loader');
 
-		$config = HTMLPurifier_Config::createDefault();
+		$config = HTMLPurifier_HTML5Config::createDefault();
+
+		$config->set('HTML.Forms', true);
 
 		if ($iniFile = find_in_path('safehtml/htmlpurifier.ini')) {
 			$config->loadIni($iniFile);
-		}
-		else {
+		} else {
+
 			$config->set('Attr.EnableID', true);
 			$config->set('HTML.TidyLevel', 'none');
 			$config->set('Cache.SerializerPath', rtrim(realpath(_DIR_TMP), '/'));
@@ -45,10 +48,6 @@ function inc_safehtml_dist(string $t): string {
 
 			$config->set('URI.AllowedSchemes', ['http' => true, 'https' => true, 'mailto' => true, 'ftp' => true, 'nntp' => true, 'news' => true, 'tel' => true, 'tcp' => true, 'udp' => true, 'ssh' => true,]);
 		}
-
-		$html = $config->getHTMLDefinition(true);
-		$html->manager->addModule('Forms');
-		$html->manager->registeredModules['Forms']->safe = true;
 
 		$purifier = new HTMLPurifier($config);
 	}
