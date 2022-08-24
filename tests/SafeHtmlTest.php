@@ -193,6 +193,7 @@ paragraphes',
     0 => [
 		'<input type="IMAGE" />',
 		'<input type="image" />',
+		'<input type="image" alt="image">',
 	],
     1 => '<INPUT TYPE="IMAGE" SRC="javascript:alert(\'XSS\');">',
   ),
@@ -221,6 +222,7 @@ paragraphes',
     0 => [
 	    '<img src="http://www.thesiteyouareon.com/somecommand.php?somevariables=maliciouscode" />',
 	    '<img src="http://www.thesiteyouareon.com/somecommand.php?somevariables=maliciouscode" alt="somecommand.php?somevariables=maliciouscode" />',
+	    '<img src="http://www.thesiteyouareon.com/somecommand.php?somevariables=maliciouscode" alt="somecommand.php?somevariables=maliciouscode">',
     ],
     1 => '<IMG SRC="http://www.thesiteyouareon.com/somecommand.php?somevariables=maliciouscode">',
   ),
@@ -364,6 +366,7 @@ xss:&#101;x&#x2F;*XSS*//*/*/pression(alert("XSS"))\'>',
   array (
     0 => [
 		'<table><td></td></table>',
+		'<table></table>',
 	    '',
 	],
     1 => '<TABLE><TD BACKGROUND="javascript:alert(\'XSS\')"></TD></TABLE>',
@@ -404,6 +407,7 @@ XSS',
 
 <span></span>',
 	    '<i><b><img src="javas" alt="javas&lt;!-- --&gt;cript:alert(\'XSS\')" /></b></i><span></span>',
+	    '<i><b><img src="javas" alt="javas&lt;!-- --&gt;cript:alert(\'XSS\')"></b></i><span></span>',
 	],
     1 => '<XML ID="xss"><I><B><IMG SRC="javas<!-- -->cript:alert(\'XSS\')"></B></I></XML>
 
@@ -486,6 +490,7 @@ echo(\'IPT>alert("XSS")</SCRIPT>\'); ?>',
     0 => [
 		'<br size="&{alert(\'XSS\')}" />',
 		'<br />',
+		'<br>',
 	],
     1 => '<BR SIZE="&{alert(\'XSS\')}">',
   ),
@@ -817,6 +822,7 @@ echo(\'IPT>alert("XSS")</SCRIPT>\'); ?>',
 		'<img />
 ',
 	    '<img src="j%20a%20v%20a%20s%20c%20r%20i%20p%20t%20%3A%20a%20l%20e%20r%20t%20(%20\'%20X%20S%20S%20\'%20)" alt="j a v a s c r i p t : a l e r t ( \' X S S \' )" />',
+	    '<img src="j%20a%20v%20a%20s%20c%20r%20i%20p%20t%20%3A%20a%20l%20e%20r%20t%20(%20\'%20X%20S%20S%20\'%20)" alt="j a v a s c r i p t : a l e r t ( \' X S S \' )">',
 	],
     1 => '<IMG
 SRC
@@ -918,8 +924,12 @@ S
   ),
   97 =>
   array (
-    0 => '<code class="echappe-js">&lt;SCRIPT&gt;a=/XSS/<br />
+    0 => [
+		'<code class="echappe-js">&lt;SCRIPT&gt;a=/XSS/<br />
 alert(a.source)&lt;/SCRIPT&gt;</code>',
+		'<code class="echappe-js">&lt;SCRIPT&gt;a=/XSS/<br>
+alert(a.source)&lt;/SCRIPT&gt;</code>',
+	],
     1 => '<SCRIPT>a=/XSS/
 alert(a.source)</SCRIPT>',
   ),
