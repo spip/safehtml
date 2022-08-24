@@ -772,8 +772,6 @@ class HTMLPurifier_AttrTypes
         // pseudo-types, must be instantiated via shorthand
         $this->info['Enum']    = new HTMLPurifier_AttrDef_Enum();
         $this->info['Bool']    = new HTMLPurifier_AttrDef_HTML_Bool();
-        $this->info['Float']   = new HTMLPurifier_AttrDef_Float();
-
 
         $this->info['CDATA']    = new HTMLPurifier_AttrDef_Text();
         $this->info['ID']       = new HTMLPurifier_AttrDef_HTML_ID();
@@ -946,12 +944,6 @@ class HTMLPurifier_AttrValidator
                 // there is a global definition defined, validate according
                 // to the global definition
                 $result = $d_defs[$attr_key]->validate(
-                    $value,
-                    $config,
-                    $context
-                );
-            } elseif ( in_array(substr($attr_key,0,5), array("data-", "aria-")) ) {
-                $result = $defs[substr($attr_key,0,5)]->validate(
                     $value,
                     $config,
                     $context
@@ -2467,7 +2459,7 @@ class HTMLPurifier_Config
     {
         return $this->getDefinition('HTML', true, true);
     }
-
+    
     /**
      * @return HTMLPurifier_CSSDefinition|null
      */
@@ -2475,7 +2467,7 @@ class HTMLPurifier_Config
     {
         return $this->getDefinition('CSS', true, true);
     }
-
+    
     /**
      * @return HTMLPurifier_URIDefinition|null
      */
@@ -3617,13 +3609,13 @@ class HTMLPurifier_DoctypeRegistry
         // backwards-compatibility
         if ($config->get('HTML.XHTML')) {
             $doctype = 'XHTML 1.0';
-	        if ($config->get('HTML.Strict')) {
-	            $doctype .= ' Strict';
-	        } else {
-	            $doctype .= ' Transitional';
-	        }
         } else {
-            $doctype = 'html';
+            $doctype = 'HTML 4.01';
+        }
+        if ($config->get('HTML.Strict')) {
+            $doctype .= ' Strict';
+        } else {
+            $doctype .= ' Transitional';
         }
         return $doctype;
     }
@@ -3809,7 +3801,7 @@ class HTMLPurifier_ElementDef
 
         if (!empty($def->content_model)) {
             $this->content_model =
-                str_replace("#SUPER", $this->content_model, $def->content_model);
+                str_replace("#SUPER", (string)$this->content_model, $def->content_model);
             $this->child = false;
         }
         if (!empty($def->content_model_type)) {
@@ -4248,8 +4240,8 @@ class HTMLPurifier_Encoder
             // characters to their true byte-wise ASCII/UTF-8 equivalents.
             $str = strtr($str, self::testEncodingSupportsASCII($encoding));
             return $str;
-        } elseif ($encoding === 'iso-8859-1') {
-            $str = utf8_encode($str);
+        } elseif ($encoding === 'iso-8859-1' && function_exists('mb_convert_encoding')) {
+            $str = mb_convert_encoding($str, 'UTF-8', 'ISO-8859-1');
             return $str;
         }
         $bug = HTMLPurifier_Encoder::testIconvTruncateBug();
@@ -4300,8 +4292,8 @@ class HTMLPurifier_Encoder
             // Normal stuff
             $str = self::iconv('utf-8', $encoding . '//IGNORE', $str);
             return $str;
-        } elseif ($encoding === 'iso-8859-1') {
-            $str = utf8_decode($str);
+        } elseif ($encoding === 'iso-8859-1' && function_exists('mb_convert_encoding')) {
+            $str = mb_convert_encoding($str, 'ISO-8859-1', 'UTF-8');
             return $str;
         }
         trigger_error('Encoding not supported', E_USER_ERROR);
@@ -6342,9 +6334,6 @@ class HTMLPurifier_HTMLModuleManager
             'CommonAttributes', 'Text', 'Hypertext', 'List',
             'Presentation', 'Edit', 'Bdo', 'Tables', 'Image',
             'StyleAttribute',
-            // HTML5
-            'Address', 'Audio', 'Figure', 'Hgroup', 'Interactive', 'Picture', 'Progress', 'Sections', 'Source', 'Time', 'Track', 'Video',
-
             // Unsafe:
             'Scripting', 'Object', 'Forms',
             // Sorta legacy, but present in strict:
@@ -6355,15 +6344,6 @@ class HTMLPurifier_HTMLModuleManager
         $non_xml = array('NonXMLCommonAttributes');
 
         // setup basic doctypes
-
-	    $this->doctypes->register(
-	                'html', // HTML5
-	                false,
-	                array_merge($common, $transitional, $non_xml),
-	                array('Tidy_Transitional', 'Tidy_Proprietary'),
-	                array()
-        );
-
         $this->doctypes->register(
             'HTML 4.01 Transitional',
             false,
@@ -7575,7 +7555,7 @@ class HTMLPurifier_Length
         if ($this->n === '0' && $this->unit === false) {
             return true;
         }
-        if (!ctype_lower($this->unit)) {
+        if ($this->unit === false || !ctype_lower($this->unit)) {
             $this->unit = strtolower($this->unit);
         }
         if (!isset(HTMLPurifier_Length::$allowedUnits[$this->unit])) {
@@ -7707,6 +7687,11 @@ class HTMLPurifier_Lexer
      * If it does, set to true.
      */
     public $tracksLineNumbers = false;
+
+    /**
+     * @type HTMLPurifier_EntityParser
+     */
+    private $_entity_parser;
 
     // -- STATIC ----------------------------------------------------------
 
@@ -7966,8 +7951,8 @@ class HTMLPurifier_Lexer
     {
         // normalize newlines to \n
         if ($config->get('Core.NormalizeNewlines')) {
-            $html = str_replace("\r\n", "\n", $html);
-            $html = str_replace("\r", "\n", $html);
+            $html = str_replace("\r\n", "\n", (string)$html);
+            $html = str_replace("\r", "\n", (string)$html);
         }
 
         if ($config->get('HTML.Trusted')) {
@@ -8357,6 +8342,7 @@ class HTMLPurifier_PropertyListIterator extends FilterIterator
     /**
      * @return bool
      */
+    #[\ReturnTypeWillChange]
     public function accept()
     {
         $key = $this->getInnerIterator()->key();
@@ -8475,6 +8461,7 @@ class HTMLPurifier_StringHash extends ArrayObject
      * @param mixed $index
      * @return mixed
      */
+    #[\ReturnTypeWillChange]
     public function offsetGet($index)
     {
         $this->accessed[$index] = true;
@@ -10594,123 +10581,6 @@ class HTMLPurifier_AttrDef_Enum extends HTMLPurifier_AttrDef
 
 
 /**
- * Validates a floating point number
- */
-class HTMLPurifier_AttrDef_Float extends HTMLPurifier_AttrDef
-{
-    /**
-     * @var int|float
-     */
-    protected $min;
-
-    /**
-     * @var int|float
-     */
-    protected $max;
-
-    /**
-     * @var bool
-     */
-    protected $minInclusive = true;
-
-    /**
-     * @var bool
-     */
-    protected $maxInclusive = true;
-
-    /**
-     * Supported options:
-     *
-     * - 'min'          => int|float
-     * - 'max'          => int|float
-     * - 'minInclusive' => bool
-     * - 'maxInclusive' => bool
-     *
-     * @param array $options OPTIONAL
-     */
-    public function __construct($options = null)
-    {
-        $options = is_array($options) ? $options : array();
-
-        $this->min = isset($options['min']) ? floatval($options['min']) : null;
-        $this->max = isset($options['max']) ? floatval($options['max']) : null;
-
-        if (isset($options['minInclusive'])) {
-            $this->minInclusive = (bool) $options['minInclusive'];
-        }
-
-        if (isset($options['maxInclusive'])) {
-            $this->maxInclusive = (bool) $options['maxInclusive'];
-        }
-    }
-
-    /**
-     * @param string $number
-     * @param HTMLPurifier_Config $config
-     * @param HTMLPurifier_Context $context
-     * @return string
-     */
-    public function validate($number, $config, $context)
-    {
-        $number = $this->parseCDATA($number);
-
-        if ($number === '') {
-            return false;
-        }
-
-        // Up to PHP 5.6 is_numeric() returns TRUE for hex strings
-        // http://php.net/manual/en/function.is-numeric.php
-        if (!preg_match('/^[-+.0-9Ee]+$/', $number) || !is_numeric($number)) {
-            return false;
-        }
-
-        // HTML numbers cannot start with '+' character
-        // https://html.spec.whatwg.org/multipage/common-microsyntaxes.html#valid-floating-point-number
-        if (substr($number, 0, 1) === '+') {
-            $number = substr($number, 1);
-        }
-
-        $value = floatval($number);
-
-        if (($this->min !== null) &&
-            (($this->minInclusive && $value < $this->min) || (!$this->minInclusive && $value <= $this->min))
-        ) {
-            return false;
-        }
-
-        if (($this->max !== null) &&
-            (($this->maxInclusive && $this->max < $value) || (!$this->maxInclusive && $this->max <= $value))
-        ) {
-            return false;
-        }
-
-        return $number;
-    }
-
-    /**
-     * Factory function
-     *
-     * @param string $string A comma-delimited list of key:value pairs. Example: "min:0,max:10".
-     * @return HTMLPurifier_AttrDef_Float
-     */
-    public function make($string)
-    {
-        $options = array();
-        foreach (explode(',', $string) as $pair) {
-            $parts = explode(':', $pair, 2);
-            if (count($parts) === 2) {
-                list($key, $value) = $parts;
-                $options[$key] = $value;
-            }
-        }
-        $class = get_class($this);
-        return new $class($options);
-    }
-}
-
-
-
-/**
  * Validates an integer.
  * @note While this class was modeled off the CSS definition, no currently
  *       allowed CSS uses this type.  The properties that do are: widows,
@@ -10882,55 +10752,6 @@ class HTMLPurifier_AttrDef_Lang extends HTMLPurifier_AttrDef
             $new_string .= '-' . $subtags[$i];
         }
         return $new_string;
-    }
-}
-
-
-
-
-
-class HTMLPurifier_AttrDef_Regexp extends HTMLPurifier_AttrDef
-{
-    /**
-     * @var string
-     */
-    protected $pattern;
-
-    /**
-     * @param string $pattern
-     */
-    public function __construct($pattern = null)
-    {
-        if ($pattern !== null) {
-            $pattern = (string) $pattern;
-            if (false === @preg_match($pattern, 'Test')) {
-                throw new HTMLPurifier_Exception('Invalid regular expression pattern provided');
-            }
-            $this->pattern = $pattern;
-        }
-    }
-
-    /**
-     * @param string $string
-     * @param HTMLPurifier_Config $config
-     * @param HTMLPurifier_Context $context
-     * @return bool
-     */
-    public function validate($string, $config, $context)
-    {
-        if ($this->pattern) {
-            return (bool) preg_match($this->pattern, $string);
-        }
-        return false;
-    }
-
-    /**
-     * @param string $string
-     * @return HTMLPurifier_AttrDef_Regexp
-     */
-    public function make($string)
-    {
-        return new self($string);
     }
 }
 
@@ -14334,6 +14155,11 @@ class HTMLPurifier_AttrTransform_Name extends HTMLPurifier_AttrTransform
 class HTMLPurifier_AttrTransform_NameSync extends HTMLPurifier_AttrTransform
 {
 
+    /**
+     * @type HTMLPurifier_AttrDef_HTML_ID
+     */
+    public $idDef;
+
     public function __construct()
     {
         $this->idDef = new HTMLPurifier_AttrDef_HTML_ID();
@@ -14418,45 +14244,6 @@ class HTMLPurifier_AttrTransform_Nofollow extends HTMLPurifier_AttrTransform
 }
 
 
-
-
-
-/**
- * Post-transform performing validations for <progress> elements ensuring
- * that if value is present, it is within a valid range (0..1) or (0..max)
- *
- * Implementation is based on sanitization performed by browsers (compared
- * against Chrome 68 and Firefox 61).
- */
-class HTMLPurifier_AttrTransform_Progress extends HTMLPurifier_AttrTransform
-{
-    /**
-     * @param array $attr
-     * @param HTMLPurifier_Config $config
-     * @param HTMLPurifier_Context $context
-     * @return array
-     */
-    public function transform($attr, $config, $context)
-    {
-        $max = isset($attr['max']) ? (float) $attr['max'] : 1;
-
-        if ($max <= 0) {
-            $this->confiscateAttr($attr, 'max');
-        }
-
-        if (isset($attr['value'])) {
-            $value = (float) $attr['value'];
-
-            if ($value < 0) {
-                $this->confiscateAttr($attr, 'value');
-            } elseif ($value > $max) {
-                $attr['value'] = isset($attr['max']) ? $attr['max'] : 1;
-            }
-        }
-
-        return $attr;
-    }
-}
 
 
 
@@ -14940,91 +14727,6 @@ class HTMLPurifier_ChildDef_Custom extends HTMLPurifier_ChildDef
 
 
 
-class HTMLPurifier_ChildDef_Details extends HTMLPurifier_ChildDef
-{
-    public $type = 'details';
-
-    public $elements = array(
-        'summary' => true,
-    );
-
-    protected $allowedElements;
-
-    /**
-     * @param HTMLPurifier_Config $config
-     * @return array
-     */
-    public function getAllowedElements($config)
-    {
-        if (null === $this->allowedElements) {
-            // Add Flow content to allowed elements to prevent MakeWellFormed
-            // strategy moving them outside details element
-            $def = $config->getHTMLDefinition();
-
-            $this->allowedElements = array_merge(
-                $def->info_content_sets['Flow'],
-                $this->elements
-            );
-        }
-        return $this->allowedElements;
-    }
-
-    /**
-     * @param array $children
-     * @param HTMLPurifier_Config $config
-     * @param HTMLPurifier_Context $context
-     * @return array
-     */
-    public function validateChildren($children, $config, $context)
-    {
-        if (empty($children)) {
-            return false;
-        }
-
-        if (!isset($config->getHTMLDefinition()->info['summary'])) {
-            trigger_error("Cannot allow details without allowing summary", E_USER_WARNING);
-            return false;
-        }
-
-        $summary = null;
-        $result = array();
-
-        // Content model:
-        // One summary element followed by flow content
-        foreach ($children as $node) {
-            if (!$summary && $node->name === 'summary') {
-                $summary = $node;
-                continue;
-            }
-            if ($node->name === 'summary') {
-                // duplicated summary, add only its children
-                $result = array_merge($result, (array) $node->children);
-            } else {
-                $result[] = $node;
-            }
-        }
-
-        $whitespaceOnly = true;
-        foreach ($result as $node) {
-            $whitespaceOnly = $whitespaceOnly && !empty($node->is_whitespace);
-        }
-
-        if (!$summary) {
-            // remove parent node if there are no children or all children are whitespace-only
-            if ($whitespaceOnly) {
-                return false;
-            }
-            $summary = new HTMLPurifier_Node_Element('summary');
-        }
-
-        array_unshift($result, $summary);
-
-        return $result;
-    }
-}
-
-
-
 /**
  * Definition that disallows all elements.
  * @warning validateChildren() in this class is actually never called, because
@@ -15064,96 +14766,6 @@ class HTMLPurifier_ChildDef_Empty extends HTMLPurifier_ChildDef
 
 
 
-class HTMLPurifier_ChildDef_Figure extends HTMLPurifier_ChildDef
-{
-    public $type = 'figure';
-
-    public $elements = array(
-        'figcaption' => true,
-    );
-
-    protected $allowedElements;
-
-    /**
-     * @param HTMLPurifier_Config $config
-     * @return array
-     */
-    public function getAllowedElements($config)
-    {
-        if (null === $this->allowedElements) {
-            // Add Flow content to allowed elements to prevent MakeWellFormed
-            // strategy moving them outside 'figure' element
-            $def = $config->getHTMLDefinition();
-
-            $this->allowedElements = array_merge(
-                $def->info_content_sets['Flow'],
-                $this->elements
-            );
-        }
-        return $this->allowedElements;
-    }
-
-    /**
-     * @param array $children
-     * @param HTMLPurifier_Config $config
-     * @param HTMLPurifier_Context $context
-     * @return array
-     */
-    public function validateChildren($children, $config, $context)
-    {
-        $allowFigcaption = isset($config->getHTMLDefinition()->info['figcaption']);
-        $hasFigcaption = false;
-        $figcaptionPos = -1;
-
-        $result = array();
-
-        // Content model:
-        // Either: one figcaption element followed by flow content.
-        // Or: flow content followed by one figcaption element.
-        // Or: flow content.
-
-        // Scan through children, accept at most one figcaption. If additional
-        // figcaption appears replace it with div
-        foreach ($children as $node) {
-            if ($node->name === 'figcaption') {
-                if ($allowFigcaption && !$hasFigcaption) {
-                    $hasFigcaption = true;
-                    $figcaptionPos = count($result);
-                    $result[] = $node;
-                    continue;
-                }
-
-                $div = new HTMLPurifier_Node_Element('div', $node->attr);
-                $div->children = $node->children;
-                $result[] = $div;
-                continue;
-            }
-
-            // Figcaption must be a first or last child of a figure element.
-            // If it's not first, then we ignore all siblings that come after.
-            if ($hasFigcaption && $figcaptionPos > 0) {
-                break;
-            }
-
-            $result[] = $node;
-        }
-
-        $whitespaceOnly = true;
-        foreach ($result as $node) {
-            $whitespaceOnly = $whitespaceOnly && !empty($node->is_whitespace);
-        }
-
-        // remove parent node if there are no children or all children are whitespace-only
-        if (empty($result) || $whitespaceOnly) {
-            return false;
-        }
-
-        return $result;
-    }
-}
-
-
-
 /**
  * Definition for list containers ul and ol.
  *
@@ -15175,6 +14787,8 @@ class HTMLPurifier_ChildDef_List extends HTMLPurifier_ChildDef
     // lying a little bit, so that we can handle ul and ol ourselves
     // XXX: This whole business with 'wrap' is all a bit unsatisfactory
     public $elements = array('li' => true, 'ul' => true, 'ol' => true);
+
+    public $whitespace;
 
     /**
      * @param array $children
@@ -15244,101 +14858,6 @@ class HTMLPurifier_ChildDef_List extends HTMLPurifier_ChildDef
 }
 
 
-
-
-
-class HTMLPurifier_ChildDef_Media extends HTMLPurifier_ChildDef
-{
-    public $type = 'media';
-
-    public $elements = array(
-        'source' => true,
-        'track'  => true,
-    );
-
-    protected $allowedElements;
-
-    /**
-     * @param HTMLPurifier_Config $config
-     * @return array
-     */
-    public function getAllowedElements($config)
-    {
-        if (null === $this->allowedElements) {
-            // Add Flow content to allowed elements to prevent MakeWellFormed
-            // strategy moving them outside details element
-            $def = $config->getHTMLDefinition();
-
-            $this->allowedElements = array_merge(
-                $def->info_content_sets['Flow'],
-                $this->elements
-            );
-            unset(
-                $this->allowedElements['audio'],
-                $this->allowedElements['video']
-            );
-        }
-        return $this->allowedElements;
-    }
-
-    /**
-     * @param array $children
-     * @param HTMLPurifier_Config $config
-     * @param HTMLPurifier_Context $context
-     * @return array
-     */
-    public function validateChildren($children, $config, $context)
-    {
-        // Content model:
-        // If the element has a src attribute: zero or more track elements,
-        // then transparent, but with no media element descendants.
-        // If the element does not have a src attribute: zero or more source
-        // elements, then zero or more track elements, then transparent, but
-        // with no media element descendants.
-
-        $allowSource = isset($config->getHTMLDefinition()->info['source']);
-        $allowTrack = isset($config->getHTMLDefinition()->info['track']);
-
-        $sources = array();
-        $tracks = array();
-        $content = array();
-
-        foreach ($children as $node) {
-            switch ($node->name) {
-                case 'source':
-                    if ($allowSource) {
-                        $sources[] = $node;
-                    }
-                    break;
-
-                case 'track':
-                    if ($allowTrack) {
-                        $tracks[] = $node;
-                    }
-                    break;
-
-                default:
-                    $content[] = $node;
-                    break;
-            }
-        }
-
-        $currentNode = $context->get('CurrentNode');
-        $hasSrcAttr = $currentNode instanceof HTMLPurifier_Node_Element && isset($currentNode->attr['src']);
-
-        if ($hasSrcAttr) {
-            $result = array_merge($tracks, $content);
-        } else {
-            $result = array_merge($sources, $tracks, $content);
-        }
-
-        if (empty($result) && !$hasSrcAttr) {
-            return false;
-        }
-
-        return $result;
-    }
-}
 
 
 
@@ -15504,124 +15023,6 @@ class HTMLPurifier_ChildDef_Optional extends HTMLPurifier_ChildDef_Required
 }
 
 
-
-
-
-class HTMLPurifier_ChildDef_Picture extends HTMLPurifier_ChildDef
-{
-    public $type = 'picture';
-
-    public $elements = array(
-        'img'    => true,
-        'source' => true,
-    );
-
-    /**
-     * @param array $children
-     * @param HTMLPurifier_Config $config
-     * @param HTMLPurifier_Context $context
-     * @return array
-     */
-    public function validateChildren($children, $config, $context)
-    {
-        // if there are no tokens, delete parent node
-        if (empty($children)) {
-            return false;
-        }
-
-        if (!isset($config->getHTMLDefinition()->info['img'])) {
-            trigger_error("Cannot allow picture without allowing img", E_USER_WARNING);
-            return false;
-        }
-
-        $allowSource = isset($config->getHTMLDefinition()->info['source']);
-        $hasImg = false;
-
-        $result = array();
-
-        // Content model:
-        // Zero or more source elements, followed by one img element, optionally intermixed with script-supporting elements.
-        // https://html.spec.whatwg.org/multipage/embedded-content.html#the-picture-element
-        foreach ($children as $node) {
-            if (($allowSource && $node->name === 'source') || $node->name === 'img') {
-                $result[] = $node;
-            }
-            if ($node->name === 'img') {
-                $hasImg = true;
-                break;
-            }
-        }
-
-        if (!$hasImg || empty($result)) {
-            return false;
-        }
-
-        return $result;
-    }
-}
-
-
-
-class HTMLPurifier_ChildDef_Progress extends HTMLPurifier_ChildDef
-{
-    public $type = 'progress';
-
-    public $elements = array();
-
-    protected $allowedElements;
-
-    public function getAllowedElements($config)
-    {
-        if (null === $this->allowedElements) {
-            $def = $config->getHTMLDefinition();
-
-            // Should be 'Phrasing', but since HTMLPurifier has no built-in support
-            // for this category 'Inline' is the closest what we can use
-            $this->allowedElements = $def->info_content_sets['Inline'];
-        }
-        return $this->allowedElements;
-    }
-
-    /**
-     * @param HTMLPurifier_Node[] $children
-     * @param HTMLPurifier_Config $config
-     * @param HTMLPurifier_Context $context
-     * @return HTMLPurifier_Node[]
-     */
-    public function validateChildren($children, $config, $context)
-    {
-        // Permitted content: Phrasing content, but there must be no
-        // <progress> element among its descendants.
-        // https://developer.mozilla.org/en-US/docs/Web/HTML/Element/progress
-        return $this->removeProgressElements($children);
-    }
-
-    /**
-     * Helper method for recursive 'progress' element removal.
-     *
-     * @param HTMLPurifier_Node[] $children
-     * @return HTMLPurifier_Node[]
-     */
-    protected function removeProgressElements($children)
-    {
-        $result = array();
-        foreach ($children as $child) {
-            if ($child instanceof HTMLPurifier_Node_Element) {
-                $filteredChildren = $this->removeProgressElements($child->children);
-                if ($child->name === 'progress') {
-                    // don't add <progress> element, only its children
-                    foreach ($filteredChildren as $c) {
-                        $result[] = $c;
-                    }
-                    continue;
-                }
-                $child->children = $filteredChildren;
-            }
-            $result[] = $child;
-        }
-        return $result;
-    }
-}
 
 
 
@@ -16629,64 +16030,6 @@ class HTMLPurifier_DefinitionCache_Decorator_Memory extends HTMLPurifier_Definit
 
 
 /**
- * HTML Address Module, defines Address. Core Module.
- */
-class HTMLPurifier_HTMLModule_Address extends HTMLPurifier_HTMLModule
-{
-
-    /**
-     * @type string
-     */
-    public $name = 'Address';
-
-    /**
-     * @param HTMLPurifier_Config $config
-     */
-    public function setup($config)
-    {
-        $this->addElement('address', 'Block', 'Flow', 'Common');
-
-    }
-}
-
-
-
-
-
-
-/**
- * HTML Audio Module, defines Audio. Core Module.
- */
-class HTMLPurifier_HTMLModule_Audio extends HTMLPurifier_HTMLModule
-{
-
-    /**
-     * @type string
-     */
-    public $name = 'Audio';
-
-    /**
-     * @param HTMLPurifier_Config $config
-     */
-    public function setup($config)
-    {
-        // https://html.spec.whatwg.org/dev/media.html#the-audio-element
-        $this->addElement('audio', 'Flow', new HTMLPurifier_ChildDef_Media(), 'Common', array(
-            'controls' => 'Bool',
-            'preload'  => 'Enum#auto,metadata,none',
-            'src'      => 'URI',
-        ));
-        $this->addElementToContentSet('audio', 'Inline');
-    }
-}
-
-
-
-
-
-
-
-/**
  * XHTML 1.1 Bi-directional Text Module, defines elements that
  * declare directionality of content. Text Extension Module.
  */
@@ -16745,34 +16088,13 @@ class HTMLPurifier_HTMLModule_CommonAttributes extends HTMLPurifier_HTMLModule
         'Core' => array(
             0 => array('Style'),
             // 'xml:space' => false,
-            'contenteditable' => 'Bool',
-            'draggable' => 'Bool',
-            'hidden' => 'Bool',
-
             'class' => 'Class',
             'id' => 'ID',
             'title' => 'CDATA',
-            'accesskey' => 'Character',
-//             'tabindex' => 'Number', // BUG : with it textarea disappear..
-
-            // https://www.w3.org/TR/html5/single-page.html#biblio-wai-aria-11
-            'role' => 'Enum#alert,alertdialog,application,article,banner,button,cell,checkbox,columnheader,combobox,complementary,contentinfo,definition,dialog,directory,document,feed,figure,form,grid,gridcell,group,heading,img,link,list,listbox,listitem,log,main,marquee,math,menubar,navigation,none,note,option,presentation,progressbar,radio,radiogroup,region,row,rowgroup,rowheader,scrollbar,search,searchbox,separator,slider,spinbutton,status,switch,tab,table,tablist,tabpanel,term,textbox,timer,toolbar,tooltip,tree,treegrid,treeitem',
-            'aria-' => 'CDATA',
-
-            // https://www.w3.org/TR/microdata/
-            'itemid' => 'ID',
-            'itemprop' => 'CDATA',
-            'itemscope' => 'Bool#itemscope',
-            'itemtype' => 'URI',
-
-            // https://www.w3.org/TR/html5/single-page.html#attr-data-*
-            'data-' => 'CDATA',
         ),
         'Lang' => array(),
         'I18N' => array(
             0 => array('Lang'), // proprietary, for xml:lang/lang
-            'spellcheck' => 'Enum#yes,no',
-            'translate' => 'Enum#yes,no',
         ),
         'Common' => array(
             0 => array('Core', 'I18N')
@@ -16837,31 +16159,6 @@ class HTMLPurifier_HTMLModule_Edit extends HTMLPurifier_HTMLModule
 }
 
 
-/**
- * HTML Figure Module, defines Figure. Core Module.
- */
-class HTMLPurifier_HTMLModule_Figure extends HTMLPurifier_HTMLModule
-{
-
-    /**
-     * @type string
-     */
-    public $name = 'Figure';
-
-    /**
-     * @param HTMLPurifier_Config $config
-     */
-    public function setup($config)
-    {
-        // https://html.spec.whatwg.org/dev/grouping-content.html#the-figure-element
-        $this->addElement('figure', 'Block', new HTMLPurifier_ChildDef_Figure(), 'Common');
-        $this->addElement('figcaption', false, 'Flow', 'Common');
-    }
-}
-
-
-
-
 
 
 
@@ -16909,7 +16206,6 @@ class HTMLPurifier_HTMLModule_Forms extends HTMLPurifier_HTMLModule
                 'method' => 'Enum#get,post',
                 // really ContentType, but these two are the only ones used today
                 'enctype' => 'Enum#application/x-www-form-urlencoded,multipart/form-data',
-                'novalidate' => 'Bool#novalidate',
             )
         );
         $form->excludes = array('form' => true);
@@ -16920,27 +16216,6 @@ class HTMLPurifier_HTMLModule_Forms extends HTMLPurifier_HTMLModule
             'Empty',
             'Common',
             array(
-                'autofocus' => 'Bool#autofocus',
-                'autocomplete' => 'Text',
-                'form' => 'ID',
-                'list' => 'ID',
-                'height' => 'Number',
-                'width' => 'Number',
-                'min' => 'Text',
-                'max' => 'Text',
-                'multiple' => 'Bool#multiple',
-                'placeholder' => 'Text',
-                'pattern' => 'CDATA',
-                'required' => 'Bool#required',
-                'step' => 'Number',
-                'dirname' => 'CDATA',
-
-                'formaction' => 'URI',
-                'formenctype' => 'Enum#application/x-www-form-urlencoded,multipart/form-data',
-                'formmethod' => 'Enum#get,post',
-                'formnovalidate' => 'Bool#novalidate',
-                'formtarget' => 'Enum#_blank,_self',
-
                 'accept' => 'ContentTypes',
                 'accesskey' => 'Character',
                 'alt' => 'Text',
@@ -16952,7 +16227,7 @@ class HTMLPurifier_HTMLModule_Forms extends HTMLPurifier_HTMLModule
                 'size' => 'Number',
                 'src' => 'URI#embedded',
                 'tabindex' => 'Number',
-                'type' => 'Enum#text,password,checkbox,button,radio,submit,reset,file,hidden,image,tel,search,url,email,date,time,number,range,color',
+                'type' => 'Enum#text,password,checkbox,button,radio,submit,reset,file,hidden,image',
                 'value' => 'CDATA',
             )
         );
@@ -16964,10 +16239,6 @@ class HTMLPurifier_HTMLModule_Forms extends HTMLPurifier_HTMLModule
             'Required: optgroup | option',
             'Common',
             array(
-                'autofocus' => 'Bool#autofocus',
-                'form' => 'ID',
-                'required' => 'Bool#required',
-
                 'disabled' => 'Bool#disabled',
                 'multiple' => 'Bool#multiple',
                 'name' => 'CDATA',
@@ -16998,14 +16269,6 @@ class HTMLPurifier_HTMLModule_Forms extends HTMLPurifier_HTMLModule
             'Optional: #PCDATA',
             'Common',
             array(
-	            'autofocus' => 'Bool#autofocus',
-
-//                 'maxlength' => 'Number', // BUG : with it textarea disappear..
-//                 'minlength' => 'Number', // BUG : with it textarea disappear..
-                'wrap' => 'Enum#hard,soft',
-
-                'placeholder' => 'Text',
-                'form' => 'ID',
                 'accesskey' => 'Character',
                 'cols*' => 'Number',
                 'disabled' => 'Bool#disabled',
@@ -17023,15 +16286,6 @@ class HTMLPurifier_HTMLModule_Forms extends HTMLPurifier_HTMLModule
             'Optional: #PCDATA | Heading | List | Block | Inline',
             'Common',
             array(
-	           'autofocus' => 'Bool#autofocus',
-               'form' => 'ID',
-
-               'formaction' => 'URI',
-               'formenctype' => 'Enum#application/x-www-form-urlencoded,multipart/form-data',
-               'formmethod' => 'Enum#get,post',
-               'formnovalidate' => 'Bool#novalidate',
-               'formtarget' => 'Enum#_blank,_self',
-
                 'accesskey' => 'Character',
                 'disabled' => 'Bool#disabled',
                 'name' => 'CDATA',
@@ -17102,30 +16356,9 @@ class HTMLPurifier_HTMLModule_Forms extends HTMLPurifier_HTMLModule
 
 
 
-/**
- * HTML Hgroup Module, defines Hgroup. Core Module.
- */
-class HTMLPurifier_HTMLModule_Hgroup extends HTMLPurifier_HTMLModule
-{
-
-    /**
-     * @type string
-     */
-    public $name = 'Hgroup';
-
-    /**
-     * @param HTMLPurifier_Config $config
-     */
-    public function setup($config)
-    {
-        $this->addElement('hgroup', 'Block', 'Required: h1 | h2 | h3 | h4 | h5 | h6', 'Common');
-    }
-}
-
-
 
 /**
- * HTML 5 Hypertext Module, defines hypertext links. Core Module.
+ * XHTML 1.1 Hypertext Module, defines hypertext links. Core Module.
  */
 class HTMLPurifier_HTMLModule_Hypertext extends HTMLPurifier_HTMLModule
 {
@@ -17146,14 +16379,12 @@ class HTMLPurifier_HTMLModule_Hypertext extends HTMLPurifier_HTMLModule
             'Inline',
             'Common',
             array(
-	            'download' => 'Text',
                 // 'accesskey' => 'Character',
                 // 'charset' => 'Charset',
                 'href' => 'URI',
                 // 'hreflang' => 'LanguageCode',
                 'rel' => new HTMLPurifier_AttrDef_HTML_LinkTypes('rel'),
                 'rev' => new HTMLPurifier_AttrDef_HTML_LinkTypes('rev'),
-	            'target'   => new HTMLPurifier_AttrDef_HTML_FrameTarget(),
                 // 'tabindex' => 'Number',
                 // 'type' => 'ContentType',
             )
@@ -17201,7 +16432,6 @@ class HTMLPurifier_HTMLModule_Iframe extends HTMLPurifier_HTMLModule
             'Flow',
             'Common',
             array(
-                'allowfullscreen', 'Bool',
                 'src' => 'URI#embedded',
                 'width' => 'Length',
                 'height' => 'Length',
@@ -17211,7 +16441,6 @@ class HTMLPurifier_HTMLModule_Iframe extends HTMLPurifier_HTMLModule
                 'longdesc' => 'URI',
                 'marginheight' => 'Pixels',
                 'marginwidth' => 'Pixels',
-                'sandbox' => 'Bool#sandbox',
             )
         );
     }
@@ -17253,8 +16482,6 @@ class HTMLPurifier_HTMLModule_Image extends HTMLPurifier_HTMLModule
                 'width' => 'Pixels#' . $max,
                 'longdesc' => 'URI',
                 'src*' => new HTMLPurifier_AttrDef_URI(true), // embedded
-                'srcset' => 'Text',
-                'sizes' => 'Text',
             )
         );
         if ($max === null || $config->get('HTML.Trusted')) {
@@ -17268,37 +16495,6 @@ class HTMLPurifier_HTMLModule_Image extends HTMLPurifier_HTMLModule
             new HTMLPurifier_AttrTransform_ImgRequired();
     }
 }
-
-
-
-
-
-/**
- * HTML Interactive Module, defines Interactive. Core Module.
- */
-class HTMLPurifier_HTMLModule_Interactive extends HTMLPurifier_HTMLModule
-{
-
-    /**
-     * @type string
-     */
-    public $name = 'Interactive';
-
-    /**
-     * @param HTMLPurifier_Config $config
-     */
-    public function setup($config)
-    {
-        // Interactive elements
-        // https://html.spec.whatwg.org/dev/interactive-elements.html#the-details-element
-        $this->addElement('details', 'Block', new HTMLPurifier_ChildDef_Details(), 'Common', array(
-            'open' => 'Bool',
-        ));
-        $this->addElement('summary', false, 'Flow', 'Common');
-    }
-}
-
-
 
 
 
@@ -17520,15 +16716,7 @@ class HTMLPurifier_HTMLModule_List extends HTMLPurifier_HTMLModule
      */
     public function setup($config)
     {
-        $ol = $this->addElement(
-            'ol',
-            'List',
-             new HTMLPurifier_ChildDef_List(),
-            'Common',
-            array(
-                'reversed', 'Bool#reversed',
-            )
-        );
+        $ol = $this->addElement('ol', 'List', new HTMLPurifier_ChildDef_List(), 'Common');
         $ul = $this->addElement('ul', 'List', new HTMLPurifier_ChildDef_List(), 'Common');
         // XXX The wrap attribute is handled by MakeWellFormed.  This is all
         // quite unsatisfactory, because we generated this
@@ -17664,8 +16852,7 @@ class HTMLPurifier_HTMLModule_Object extends HTMLPurifier_HTMLModule
                 'standby' => 'Text',
                 'tabindex' => 'Number',
                 'type' => 'ContentType',
-                'width' => 'Length',
-                'typemustmatch' => 'Bool#typemustmatch',
+                'width' => 'Length'
             )
         );
 
@@ -17684,34 +16871,6 @@ class HTMLPurifier_HTMLModule_Object extends HTMLPurifier_HTMLModule
         );
     }
 }
-
-
-
-
-
-/**
- * HTML Picture Module, defines Picture. Core Module.
- */
-class HTMLPurifier_HTMLModule_Picture extends HTMLPurifier_HTMLModule
-{
-
-    /**
-     * @type string
-     */
-    public $name = 'Picture';
-
-    /**
-     * @param HTMLPurifier_Config $config
-     */
-    public function setup($config)
-    {
-        // https://html.spec.whatwg.org/dev/embedded-content.html#the-picture-element
-        $this->addElement('picture', 'Flow', new HTMLPurifier_ChildDef_Picture(), 'Common');
-        $this->addElementToContentSet('picture', 'Inline');
-    }
-}
-
-
 
 
 
@@ -17755,38 +16914,6 @@ class HTMLPurifier_HTMLModule_Presentation extends HTMLPurifier_HTMLModule
         $tt->formatting = true;
     }
 }
-
-
-
-
-
-/**
- * HTML Progress Module, defines Progress. Core Module.
- */
-class HTMLPurifier_HTMLModule_Progress extends HTMLPurifier_HTMLModule
-{
-
-    /**
-     * @type string
-     */
-    public $name = 'Progress';
-
-    /**
-     * @param HTMLPurifier_Config $config
-     */
-    public function setup($config)
-    {
-        // https://html.spec.whatwg.org/dev/form-elements.html#the-progress-element
-        $a = $this->addElement('progress', 'Flow', new HTMLPurifier_ChildDef_Progress(), 'Common', array(
-            'value' => 'Float#min:0',
-            'max'   => 'Float#min:0',
-        ));
-        $a->attr_transform_post[] = new HTMLPurifier_AttrTransform_Progress();
-//         $this->addElementToContentSet('progress', 'Inline');
-    }
-}
-
-
 
 
 
@@ -18090,72 +17217,6 @@ class HTMLPurifier_HTMLModule_Scripting extends HTMLPurifier_HTMLModule
 
 
 /**
- * HTML 5 Sections Module, defines Sections. Core Module.
- */
-class HTMLPurifier_HTMLModule_Sections extends HTMLPurifier_HTMLModule
-{
-
-    /**
-     * @type string
-     */
-    public $name = 'Sections';
-
-    /**
-     * @param HTMLPurifier_Config $config
-     */
-    public function setup($config)
-    {
-        // http://developers.whatwg.org/sections.html
-        $this->addElement('section', 'Block', 'Flow', 'Common');
-        $this->addElement('nav', 'Block', 'Flow', 'Common');
-        $this->addElement('article', 'Block', 'Flow', 'Common');
-        $this->addElement('aside', 'Block', 'Flow', 'Common');
-        $this->addElement('header', 'Block', 'Flow', 'Common');
-        $this->addElement('footer', 'Block', 'Flow', 'Common');
-        $this->addElement('main', 'Block', 'Flow', 'Common');
-    }
-}
-
-
-
-
-
-
-/**
- * HTML Source Module, defines Source. Core Module.
- */
-class HTMLPurifier_HTMLModule_Source extends HTMLPurifier_HTMLModule
-{
-
-    /**
-     * @type string
-     */
-    public $name = 'Source';
-
-    /**
-     * @param HTMLPurifier_Config $config
-     */
-    public function setup($config)
-    {
-
-        // https://html.spec.whatwg.org/dev/embedded-content.html#the-source-element
-        $this->addElement('source', false, 'Empty', 'Common', array(
-            'media'  => 'Text',
-            'sizes'  => 'Text',
-            'src'    => 'URI',
-            'srcset' => 'Text',
-            'type'   => 'Text',
-        ));
-    }
-}
-
-
-
-
-
-
-
-/**
  * XHTML 1.1 Edit Module, defines editing-related elements. Text Extension
  * Module.
  */
@@ -18403,14 +17464,6 @@ class HTMLPurifier_HTMLModule_Text extends HTMLPurifier_HTMLModule
         $this->addElement('q', 'Inline', 'Inline', 'Common', array('cite' => 'URI'));
         $this->addElement('samp', 'Inline', 'Inline', 'Common');
         $this->addElement('var', 'Inline', 'Inline', 'Common');
-
-        // http://developers.whatwg.org/text-level-semantics.html
-        $this->addElement('s', 'Inline', 'Inline', 'Common');
-        $this->addElement('sub', 'Inline', 'Inline', 'Common');
-        $this->addElement('sup', 'Inline', 'Inline', 'Common');
-        $this->addElement('mark', 'Inline', 'Inline', 'Common');
-        $this->addElement('wbr', 'Inline', 'Empty', 'Core');
-
 
         $em = $this->addElement('em', 'Inline', 'Inline', 'Common');
         $em->formatting = true;
@@ -18682,104 +17735,6 @@ class HTMLPurifier_HTMLModule_Tidy extends HTMLPurifier_HTMLModule
     {
     }
 }
-
-
-
-
-
-/**
- * HTML Time Module, defines Time. Core Module.
- */
-class HTMLPurifier_HTMLModule_Time extends HTMLPurifier_HTMLModule
-{
-
-    /**
-     * @type string
-     */
-    public $name = 'Time';
-
-    /**
-     * @param HTMLPurifier_Config $config
-     */
-    public function setup($config)
-    {
-
-        // TIME
-        $a = $this->addElement('time', 'Inline', 'Inline', 'Common', array('datetime' => 'Text', 'pubdate' => 'Bool'));
-        $a->excludes = array('time' => true);
-    }
-}
-
-
-
-
-
-
-
-/**
- * HTML Track Module, defines Track. Core Module.
- */
-class HTMLPurifier_HTMLModule_Track extends HTMLPurifier_HTMLModule
-{
-
-    /**
-     * @type string
-     */
-    public $name = 'Track';
-
-    /**
-     * @param HTMLPurifier_Config $config
-     */
-    public function setup($config)
-    {
-        // https://html.spec.whatwg.org/dev/media.html#the-track-element
-        $this->addElement('track', false, 'Empty', 'Common', array(
-            'kind'    => 'Enum#captions,chapters,descriptions,metadata,subtitles',
-            'src'     => 'URI',
-            'srclang' => 'Text',
-            'label'   => 'Text',
-            'default' => 'Bool',
-        ));
-
-    }
-}
-
-
-
-
-
-
-
-/**
- * HTML Video Module, defines Video. Core Module.
- */
-class HTMLPurifier_HTMLModule_Video extends HTMLPurifier_HTMLModule
-{
-
-    /**
-     * @type string
-     */
-    public $name = 'Video';
-
-    /**
-     * @param HTMLPurifier_Config $config
-     */
-    public function setup($config)
-    {
-        // https://html.spec.whatwg.org/dev/media.html#the-video-element
-        $this->addElement('video', 'Flow', new HTMLPurifier_ChildDef_Media(), 'Common', array(
-            'controls' => 'Bool',
-            'height'   => 'Length',
-            'poster'   => 'URI',
-            'preload'  => 'Enum#auto,metadata,none',
-            'src'      => 'URI',
-            'width'    => 'Length',
-        ));
-        $this->addElementToContentSet('video', 'Inline');
-    }
-}
-
-
 
 
 
@@ -19828,6 +18783,16 @@ class HTMLPurifier_Injector_RemoveSpansWithoutAttributes extends HTMLPurifier_In
      */
     private $context;
 
+    /**
+     * @type SplObjectStorage
+     */
+    private $markForDeletion;
+
+    public function __construct()
+    {
+        $this->markForDeletion = new SplObjectStorage();
+    }
+
     public function prepare($config, $context)
     {
         $this->attrValidator = new HTMLPurifier_AttrValidator();
@@ -19861,7 +18826,7 @@ class HTMLPurifier_Injector_RemoveSpansWithoutAttributes extends HTMLPurifier_In
 
         if ($current instanceof HTMLPurifier_Token_End && $current->name === 'span') {
             // Mark closing span tag for deletion
-            $current->markForDeletion = true;
+            $this->markForDeletion->attach($current);
             // Delete open span tag
             $token = false;
         }
@@ -19872,7 +18837,8 @@ class HTMLPurifier_Injector_RemoveSpansWithoutAttributes extends HTMLPurifier_In
      */
     public function handleEnd(&$token)
     {
-        if ($token->markForDeletion) {
+        if ($this->markForDeletion->contains($token)) {
+            $this->markForDeletion->detach($token);
             $token = false;
         }
     }
@@ -22696,7 +21662,7 @@ class HTMLPurifier_URIFilter_HostBlacklist extends HTMLPurifier_URIFilter
     public function filter(&$uri, $config, $context)
     {
         foreach ($this->blacklist as $blacklisted_host_fragment) {
-            if (strpos($uri->host, $blacklisted_host_fragment) !== false) {
+            if ($uri->host !== null && strpos($uri->host, $blacklisted_host_fragment) !== false) {
                 return false;
             }
         }
@@ -22967,11 +21933,11 @@ class HTMLPurifier_URIFilter_Munge extends HTMLPurifier_URIFilter
         $string = $uri->toString();
         // always available
         $this->replace['%s'] = $string;
-        $this->replace['%r'] = $context->get('EmbeddedURI', true);
-        $token = $context->get('CurrentToken', true);
-        $this->replace['%n'] = $token ? $token->name : null;
-        $this->replace['%m'] = $context->get('CurrentAttr', true);
-        $this->replace['%p'] = $context->get('CurrentCSSProperty', true);
+        $this->replace['%r'] = $context->get('EmbeddedURI', true) ?: '';
+        $token = $context->get('CurrentToken', true) ?: '';
+        $this->replace['%n'] = $token ? $token->name : '';
+        $this->replace['%m'] = $context->get('CurrentAttr', true) ?: '';
+        $this->replace['%p'] = $context->get('CurrentCSSProperty', true) ?: '';
         // not always available
         if ($this->secretKey) {
             $this->replace['%t'] = hash_hmac("sha256", $string, $this->secretKey);
