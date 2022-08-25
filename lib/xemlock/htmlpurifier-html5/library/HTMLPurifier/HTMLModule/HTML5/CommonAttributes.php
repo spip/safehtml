@@ -27,6 +27,8 @@ class HTMLPurifier_HTMLModule_HTML5_CommonAttributes extends HTMLPurifier_HTMLMo
             // date with the WHATWG HTML5 spec (as of Aug 2020), and doesn't
             // recognize inputmode as a global attribute.
             'inputmode' => 'Enum#text,decimal,numeric,tel,search,email,url',
+            'aria-' => 'CDATA',
+            'data-' => 'CDATA',
         ),
         'Lang' => array(
             'lang' => 'LanguageCode',
