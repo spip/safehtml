@@ -37,7 +37,7 @@ function inc_safehtml_dist(string $t): string {
 
 			$config->set('Attr.EnableID', true);
 			$config->set('HTML.TidyLevel', 'none');
-			$config->set('Cache.SerializerPath', rtrim(realpath(_DIR_TMP), '/'));
+			$config->set('Cache.SerializerPath', rtrim(realpath(sous_repertoire(_DIR_CACHE, 'html_purifier')), '/'));
 
 			// trop severe pour une utilisation generique ?
 			#$config->set('HTML.SafeIframe', true);
